@@ -48,6 +48,8 @@ import { useTheme } from "@react-navigation/native";
 import Intro from '../screens/Intro';
 import Welcome from "../screens/Welcome";
 import WelcomeV2 from "../screens/Welcomev2";
+import WelcomeV3 from "../screens/Welcomev3";
+import WelcomeV4 from "../screens/Welcomev4";
 import WelcomeImport from "../screens/WelcomeImport";
 
 
@@ -78,7 +80,10 @@ const StackNavigator = () => {
         <Stack.Screen name="intro" component={Intro} />
         <Stack.Screen name="welcome" component={Welcome} />
         <Stack.Screen name="welcomev2" component={WelcomeV2} />
-        <Stack.Screen name="welcomeImport" component={WelcomeImport} />
+        <Stack.Screen name="welcomev3" component={WelcomeV3} />
+        <Stack.Screen name="welcomev4" component={WelcomeV4} />
+        
+        {/* <Stack.Screen name="welcomeImport" component={WelcomeImport} /> */}
 
 
           <Stack.Screen name="signin" component={SignIn} />
