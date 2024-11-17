@@ -1,0 +1,180 @@
+import React, { useState, useRef } from 'react';
+
+import {
+    View,
+    Text,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    ScrollView,
+} from 'react-native';
+import { useTheme, useNavigation } from '@react-navigation/native';
+import { WELCOMEIMAGES, FONTS, COLORS, SIZES } from '../constants/theme';
+import ButtonOutline from '../components/Button/ButtonOutline';
+import * as Keychain from 'react-native-keychain';
+import Snackbar from 'react-native-snackbar';
+import { ethers } from 'ethers';
+import { wordlists } from "bip39";
+
+const WelcomeImport = () => {
+    const navigation = useNavigation();
+    const { colors } = useTheme();
+    const [isFocused, setisFocused] = useState(false);
+    const [recoveryPhrase, setRecoveryPhrase] = useState('');
+    const [suggestions, setSuggestions] = useState([]);
+    const inputRef = useRef(null);
+
+
+    const validateRecoveryPhrase = (phrase) => {
+        try {
+            const wallet = ethers.Wallet.fromMnemonic(phrase);
+            return wallet;
+        } catch (error) {
+            return error;
+        }
+    };
+
+    const handleSuggestionSelect = (item) => {
+        const words = recoveryPhrase.trim().split(' ');
+        words.pop();
+        words.push(item);
+        setRecoveryPhrase(words.join(' ') + ' ');
+        inputRef.current.focus();
+      };
+      
+      
+
+    const generateSuggestions = (input) => {
+        if (input.length > 0) {
+            const matchedWords = wordlists.english.filter((word) =>
+                word.startsWith(input.toLowerCase())
+            );
+            setSuggestions(matchedWords);
+        } else {
+            setSuggestions([]);
+        }
+    };
+
+
+
+    const restorePhrase = async () => {
+        try {
+            if (!recoveryPhrase) {
+                throw new Error("Recovery phrase cannot be empty");
+            }
+
+            const wallet = validateRecoveryPhrase(recoveryPhrase);
+            if (!wallet.address) {
+                throw new Error('Invalid recovery phrase');
+            }
+
+            await Keychain.setGenericPassword("recoveryPhrase", recoveryPhrase, { service: "recoveryData" });
+            console.log('Recovery phrase saved securely');
+            navigation.navigate('welcomev4', {
+                wallet: wallet
+            })
+        } catch (error) {
+            return Snackbar.show({
+                text: error.message,
+                backgroundColor: COLORS.danger,
+                duration: Snackbar.LENGTH_SHORT,
+            });
+        }
+    };
+
+    return (
+        <View style={{ flex: 1, marginHorizontal: 10, marginVertical: 20 }}>
+
+            <Text style={{ ...FONTS.h4, textAlign: 'center' }}>Secret Recovery Phrase</Text>
+            <Text style={{ ...FONTS.xs, textAlign: 'center', marginTop: 5, paddingHorizontal: 10 }}>
+                Please give us your secret recovery phrase so we can restore it
+            </Text>
+            <Text style={{ marginTop: 20 }}>Secret Recover Phrase</Text>
+
+            
+
+            <TextInput
+            ref={inputRef}
+                value={recoveryPhrase}
+                onChangeText={(text) => {
+                    setRecoveryPhrase(text);
+                    generateSuggestions(text.split(' ').pop() || ''); // Generate suggestions for the last word
+                }}
+                onFocus={() => setisFocused(true)}
+                onBlur={() => setisFocused(false)}
+                placeholderTextColor={colors.text}
+                style={[
+                    { height: 40, borderWidth: 1, borderColor: '#ccc', paddingHorizontal: 10, color: colors.text, marginTop: 5 },
+                    isFocused ? styles.inputActive : ""
+                ]}
+                placeholder='Enter your recovery phrase'
+            />
+
+            <ScrollView horizontal={false} contentContainerStyle={{flex: 1}}>
+                <View
+                    style={{
+                        flexDirection: 'row',
+                        flexWrap: 'wrap',
+                        marginTop: 1,
+                        height: 200
+                    }}
+                >
+                    {suggestions.map((item, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            onPress={() => handleSuggestionSelect(item)}
+                            style={{
+                                backgroundColor: '#fff',
+                                padding: 10,
+                                margin: 5,
+                                borderRadius: 5,
+                                borderWidth: 1,
+                                borderColor: '#ccc',
+                            }}
+                        >
+                            <Text style={{ color: colors.text }}>{item}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            </ScrollView>
+
+            <View style={{ flex: 1, justifyContent: 'flex-end', position: 'relative', bottom: 10, margin: 10 }}>
+                <ButtonOutline onPress={restorePhrase} title="Restore" />
+            </View>
+        </View>
+    )
+}
+
+const styles = StyleSheet.create({
+    imageContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    img: {
+        resizeMode: 'contain',
+        width: 350,
+        marginTop: 100
+    },
+
+    inputGroup: {
+        position: 'relative',
+        marginBottom: 15,
+    },
+
+    input: {
+        height: 48,
+        borderWidth: 1,
+        borderColor: 'transparent',
+        fontSize: SIZES.font,
+        borderRadius: SIZES.radius,
+        paddingLeft: 50,
+    },
+    inputActive: {
+        borderColor: COLORS.primary,
+    },
+})
+
+
+export default WelcomeImport;

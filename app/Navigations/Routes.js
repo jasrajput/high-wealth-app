@@ -10,7 +10,7 @@ import themeContext from "../constants/themeContext";
 import { COLORS } from "../constants/theme";
 
 const Routes = () => {
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
   const authContext = React.useMemo(() => ({
     setDarkTheme: () => {
       setIsDarkTheme(true);

@@ -50,6 +50,7 @@ import Welcome from "../screens/Welcome";
 import WelcomeV2 from "../screens/Welcomev2";
 import WelcomeV3 from "../screens/Welcomev3";
 import WelcomeV4 from "../screens/Welcomev4";
+import Deposit from "../screens/Deposit";
 import WelcomeImport from "../screens/WelcomeImport";
 
 
@@ -70,7 +71,7 @@ const StackNavigator = () => {
     <View style={[styles.container,{backgroundColor:colors.background}]}>
         <MyStatusBar barStyle={theme.dark ? "light-content" : "dark-content"} />
         <Stack.Navigator
-          initialRouteName="intro"
+          initialRouteName="drawernavigation"
           screenOptions={{
             headerShown: false,
             cardStyle: { backgroundColor: "transparent" },
@@ -82,8 +83,9 @@ const StackNavigator = () => {
         <Stack.Screen name="welcomev2" component={WelcomeV2} />
         <Stack.Screen name="welcomev3" component={WelcomeV3} />
         <Stack.Screen name="welcomev4" component={WelcomeV4} />
+        <Stack.Screen name="deposit" component={Deposit} />
         
-        {/* <Stack.Screen name="welcomeImport" component={WelcomeImport} /> */}
+        <Stack.Screen name="welcomeImport" component={WelcomeImport} />
 
 
           <Stack.Screen name="signin" component={SignIn} />

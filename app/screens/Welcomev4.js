@@ -7,7 +7,6 @@ import {
     Image,
     TextInput,
     TouchableOpacity,
-    KeyboardAvoidingView,
     ScrollView
 } from 'react-native';
 import { useTheme, useNavigation } from '@react-navigation/native';
