@@ -8,8 +8,10 @@ import { ethers } from 'ethers';
 import * as Keychain from 'react-native-keychain';
 import QRCode from 'react-native-qrcode-svg';
 import RBSheet from "react-native-raw-bottom-sheet";
-// import Share from 'react-native-share';
+import Share from 'react-native-share';
+import Clipboard from '@react-native-clipboard/clipboard';
 import 'text-encoding';
+import Snackbar from 'react-native-snackbar';
 
 
 
@@ -22,49 +24,86 @@ const Deposit = ({ route }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const refRBSheet = useRef();
+  const refRBSheet2 = useRef();
+  
   const [priceChange, setPriceChange] = useState(0);
 
-  const getAddressFromSeed = async () => {
-    // Retrieve the seed phrase from the Keychain
-    const credentials = await Keychain.getGenericPassword({ service: "recoveryData" });
-    if (credentials) {
-      const seedPhrase = credentials.password;
+  // const getAddressFromSeed = () => {
+  //   return new Promise(async (resolve, reject) => {
+  //     try {
+  //       // Retrieve the seed phrase from the Keychain
+  //       const credentials = await Keychain.getGenericPassword({ service: "recoveryData" });
+  //       if (credentials) {
+  //         const seedPhrase = credentials.password;
 
-      try {
-        const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
-        // const wallet = ethers.HDNodeWallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/0`);
-        setWalletAddress(wallet.address);
+  //         try {
+  //           const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
+  //           // const wallet = ethers.HDNodeWallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/0`);
+  //           setWalletAddress(wallet.address);
 
-        console.log("User Address: ", wallet.address);
-        return wallet.address;
-      } catch (error) {
-        console.error(error);
-      }
-    } else {
-      console.error("No seed phrase found in Keychain");
+  //           console.log("User Address: ", wallet.address);
+  //           resolve(wallet.address); // Resolve with the wallet address
+  //         } catch (error) {
+  //           console.error(error);
+  //           reject(error); // Reject if there's an error generating the wallet
+  //         }
+  //       } else {
+  //         console.error("No seed phrase found in Keychain");
+  //         reject("No seed phrase found"); // Reject if no credentials are found
+  //       }
+  //     } catch (error) {
+  //       console.error("Error retrieving credentials:", error);
+  //       reject(error); // Reject if there's an error with Keychain retrieval
+  //     }
+  //   });
+  // };
+
+  const getAddressFromSeed = () => {
+    setWalletAddress("0x21295aaAb6a1c2a88bB09BECfB51833469096063");
+    return '0x21295aaAb6a1c2a88bB09BECfB51833469096063';
+  }
+
+  const copyToClipboard = () => {
+      Clipboard.setString(walletAddress);
+      Snackbar.show({
+          text: 'Copied',
+          backgroundColor: COLORS.success,
+          duration: Snackbar.LENGTH_SHORT,
+      });
+  };
+
+  const fetchTransactions = async (address) => {
+    try {
+        const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
+        const url = `https://api.bscscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+        return data.result;
+    } catch (er) {
+      setError(er.message);
+      return [];
     }
   };
 
+  const onShareAddress = async () => {
+    try {
 
-  const fetchTransactions = async () => {
-    const address = await getAddressFromSeed();
-    if (address) {
-      // Now you can use the address to fetch transactions or interact with the blockchain
-      console.log('Fetching transactions for address: ', address);
-
-      // Example: Fetch transaction history from an API like Etherscan
-      const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
-      const url = `https://api.bscscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
-
-      const response = await fetch(url);
-      const data = await response.json();
-
-      console.log('Transactions: ', data.result);
-      return data.result;
+      const shareOptions = {
+        title: 'Share Wallet Address',
+        message: `My Public Address to Receive ${tokenData.symbol.toUpperCase()}\n. Pay me via High Wealth`,
+        subject: `My  Wallet Address`,
+        url: walletAddress,
+      };
+  
+      // Open the share dialog
+      await Share.open(shareOptions);
+    } catch (error) {
+      // console.error('Error sharing address: ', error);
+      setError(error.message);
     }
-
-    return [];
   };
+  
 
 
   useEffect(() => {
@@ -76,7 +115,7 @@ const Deposit = ({ route }) => {
         const priceChange = response.data.market_data.price_change_percentage_24h;
         setPriceChange(priceChange);
       } catch (ex) {
-        console.log(ex.message);
+        setError(ex.message);
       }
     }
 
@@ -87,7 +126,7 @@ const Deposit = ({ route }) => {
           const txs = await fetchTransactions(address);
           setTransactions(txs);
           setLoading(false);
-          
+
         } catch (err) {
           setError('Failed to fetch transactions');
           setLoading(false);
@@ -106,11 +145,19 @@ const Deposit = ({ route }) => {
     return <ActivityIndicator size="large" style={{ flex: 1 }} />;
   }
 
+  if(error) {
+    Snackbar.show({
+        text: error,
+        backgroundColor: COLORS.danger,
+        duration: Snackbar.LENGTH_SHORT,
+    });
+  }
+
   return (
     <View style={styles.container}>
 
       <HeaderBar title={tokenData.name.toUpperCase() + `(${tokenData.symbol.toUpperCase()})`} leftIcon={'back'} />
-      <BalanceChart onSend={() => refRBSheet.current.open()} headerTitle={tokenData.name.toUpperCase()} header={false} />
+      <BalanceChart onSend={() => refRBSheet2.current.open()} onReceive={() => refRBSheet.current.open()} headerTitle={tokenData.name.toUpperCase()} header={false} />
 
       <Text style={styles.header}>Transactions List</Text>
       {transactions.length > 0 ? (
@@ -126,13 +173,15 @@ const Deposit = ({ route }) => {
         <Text style={styles.noTransactions}>No transactions found.</Text>
       )}
 
+
+      {/* Receive */}
       <RBSheet
-        // height={750}
+        height={750}
         ref={refRBSheet}
         openDuration={300}
         draggable={true}
         closeOnDragDown={true}
-        useNativeDriver={true}
+        closeOnPressBack={true}
         customStyles={{
           wrapper: {
             backgroundColor: 'transparent',
@@ -141,13 +190,7 @@ const Deposit = ({ route }) => {
             backgroundColor: '#000',
           },
         }}
-        customModalProps={{
-          animationType: 'slide',
-          statusBarTranslucent: true,
-        }}
-        customAvoidingViewProps={{
-          enabled: false,
-        }}
+
       >
         <View style={styles.modalOverlay}>
           <View style={styles.container}>
@@ -174,10 +217,10 @@ const Deposit = ({ route }) => {
 
             {/* Action Buttons */}
             <View style={styles.buttonRow}>
-              <TouchableOpacity style={styles.button}>
+              <TouchableOpacity onPress={copyToClipboard} style={styles.button}>
                 <Text style={styles.buttonText}>Copy</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
+              <TouchableOpacity onPress={onShareAddress} style={styles.button}>
                 <Text style={styles.buttonText}>Share</Text>
               </TouchableOpacity>
             </View>
@@ -339,7 +382,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 1 },
+    shadowOffset: { width: 1, height: 10 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2, // For Android shadow

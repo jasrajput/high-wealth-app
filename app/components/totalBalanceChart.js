@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ripple from 'react-native-material-ripple';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-const BalanceChart = ({ headerTitle, header, onSend}) => {
+const BalanceChart = ({ headerTitle, header, onSend, onReceive }) => {
     const navigation = useNavigation();
 
     return (
@@ -139,6 +139,7 @@ const BalanceChart = ({ headerTitle, header, onSend}) => {
                 </Ripple>
 
                 <Ripple
+                    onPress={onReceive}
                     style={{
                         paddingHorizontal: 15,
                         paddingVertical: 8,
