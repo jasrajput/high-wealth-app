@@ -95,7 +95,7 @@ const CustomTabBar = ({state,navigation,descriptors}) => {
                                         <Image
                                             source={
                                                 label === "Home" ? ICONS.home :
-                                                label === "Wallet" ? ICONS.wallet :
+                                                label === "Loan" ? ICONS.trade :
                                                 label === "Market" ? ICONS.colorswatch :
                                                 label === "Profile" ? ICONS.profile : null
                                             }

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
     View,
     StyleSheet,
-    ScrollView,
     Text,
     PermissionsAndroid,
     Alert
@@ -10,7 +9,6 @@ import {
 import { useTheme } from '@react-navigation/native';
 import HeaderBar from '../layout/header';
 import QRCodeScanner from 'react-native-qrcode-scanner';
-import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
 const Scan = () => {
 
@@ -20,27 +18,33 @@ const Scan = () => {
     const [cameraPermission, setCameraPermission] = useState(false);
 
     const requestCameraPermission = async () => {
-        try {
-          if (Platform.OS === 'android') {
-            const granted = await PermissionsAndroid.request(
-              PermissionsAndroid.PERMISSIONS.CAMERA,
-              {
-                title: 'Camera Permission',
-                message: 'This app needs camera access to scan QR codes.',
-                buttonNeutral: 'Ask Me Later',
-                buttonNegative: 'Cancel',
-                buttonPositive: 'OK',
-              }
-            );
-            setCameraPermission(granted === PermissionsAndroid.RESULTS.GRANTED);
+      try {
+        if (Platform.OS === 'android') {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.CAMERA,
+            {
+              title: 'Camera Permission',
+              message: 'This app needs camera access to scan QR codes.',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            }
+          );
+    
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log('Camera permission granted');
+            setCameraPermission(true);
           } else {
-            const result = await request(PERMISSIONS.IOS.CAMERA);
-            setCameraPermission(result === RESULTS.GRANTED);
+            console.log('Camera permission denied');
           }
-        } catch (err) {
-          console.warn(err);
+        } else {
+          // For iOS, permissions are handled automatically, you can use react-native-camera directly
+          console.log('Camera permission is automatically handled on iOS');
         }
-      };
+      } catch (err) {
+        console.warn(err);
+      }
+    };
 
     useEffect(() => {
       requestCameraPermission();

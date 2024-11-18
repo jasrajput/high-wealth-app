@@ -29,11 +29,11 @@ const BottomNavigation = () => {
         />
         <Tab.Screen
           name="Wallet"
-          component={WalletScreen} 
-        />
-        <Tab.Screen 
-          name="Trade"
-          component={TradeBasic}
+          component={TradeBasic} 
+          options={{
+            title: 'Loan',
+          }}
+        
         />
         <Tab.Screen 
           name="Market" 

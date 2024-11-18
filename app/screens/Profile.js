@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { 
     View, 
     Text ,
@@ -6,74 +6,33 @@ import {
     ImageBackground,
     Image,
     TouchableOpacity,
-    PermissionsAndroid,
-    Platform,
 } from 'react-native'
 import { useTheme } from '@react-navigation/native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import HeaderBar from '../layout/header';
 import { COLORS, FONTS, ICONS, IMAGES, SIZES } from '../constants/theme';
-import { launchImageLibrary } from 'react-native-image-picker';
 import { GlobalStyleSheet } from '../constants/styleSheet';
+import * as Keychain from 'react-native-keychain';
 
 const Profile = ({navigation}) => {
 
     const {colors} = useTheme();
     const [imgUrl , setImgUrl] = useState(null);
-    
-    const handleProfileImage = async () => {
+    const [walletName , setWalletName] = useState('');
 
-        if(Platform.OS === 'ios'){
-            let options = {
-                mediaType: 'photo',
-                maxWidth: 200,
-                maxHeight: 200,
-                quality: 1,
-            };
-            launchImageLibrary(options, (response) => {
-                if(!response.didCancel){
-                    setImgUrl(response.assets[0].uri)
-                }
-            })
-        }else{
-            try {
-            await PermissionsAndroid.requestMultiple([
-                PermissionsAndroid.PERMISSIONS.CAMERA,
-                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
-            ]).then((result) => {
-                if (result['android.permission.CAMERA']
-                && result['android.permission.READ_EXTERNAL_STORAGE'] === 'granted') {
-                    let options = {
-                        mediaType: 'photo',
-                        maxWidth: 200,
-                        maxHeight: 200,
-                        quality: 1,
-                    };
-                    launchImageLibrary(options, (response) => {
-                        if(!response.didCancel){
-                            setImgUrl(response.assets[0].uri)
-                        }
-                    })
-                }
-            });
-            } catch (err) {
-                console.warn(err);
-            }
+    useEffect(() => {
+        async function getWalletName() {
+            const userWallet = await Keychain.getGenericPassword({ service: "walletName" });
+            setWalletName(userWallet.password);
         }
+
+        getWalletName();
+
+    }, [])
     
-    }
 
     const navLinks = [
-        {
-            icon : ICONS.verified,
-            title : "Verification",
-            navigate : "verification",
-        },
-        {
-            icon : ICONS.doubts,
-            title : "Know Your Crypto",
-            navigate : "knowyourcrypto",
-        },
+        
         {
             icon : ICONS.setting,
             title : "Settings",
@@ -132,7 +91,7 @@ const Profile = ({navigation}) => {
                         source={IMAGES.bg1}
                         style={{
                             flexDirection:'row',
-                            paddingHorizontal:18,
+                            paddingHorizontal:40,
                             paddingVertical:18,
                             borderRadius:SIZES.radius_lg,
                             overflow:'hidden',
@@ -140,16 +99,8 @@ const Profile = ({navigation}) => {
                         }}
                     >
                         <View style={{marginRight:18,borderWidth:3,borderRadius:80,borderColor:'rgba(255,255,255,.1)'}}>
-                            <Image
-                                source={imgUrl ? {uri : imgUrl} : IMAGES.pic1}
-                                style={{
-                                    height:80,
-                                    width:80,
-                                    borderRadius:80,
-                                }}
-                            />
+                            
                             <TouchableOpacity
-                                onPress={() => handleProfileImage()}
                                 activeOpacity={.9}
                                 style={{
                                     height:28,
@@ -157,36 +108,17 @@ const Profile = ({navigation}) => {
                                     position:'absolute',
                                     backgroundColor:COLORS.primary,
                                     borderRadius:28,
-                                    bottom:0,
-                                    right:0,
+                                    bottom:-10,
+                                    right:-10,
                                     alignItems:'center',
                                     justifyContent:'center',
                                 }}
                             >
-                                <FeatherIcon size={14} color={COLORS.white} name='edit'/>
+                                <FeatherIcon size={14} color={COLORS.white} name='credit-card'/>
                             </TouchableOpacity>
                         </View>
                         <View>
-                            <Text style={{...FONTS.h6,color:COLORS.white,marginBottom:7}}>Richard Smith</Text>
-                            <View
-                                style={{
-                                    flexDirection:'row',
-                                    alignItems:'center',
-                                    marginBottom:3,
-                                }}
-                            >
-                                <FeatherIcon style={{marginRight:6}} color={colors.text} size={14} name='mail' />
-                                <Text style={{...FONTS.fontSm,color:COLORS.white,opacity:.6}}>example@gmail.com</Text>
-                            </View>
-                            <View
-                                style={{
-                                    flexDirection:'row',
-                                    alignItems:'center',
-                                }}
-                            >
-                                <FeatherIcon style={{marginRight:6}} color={colors.text} size={14} name='phone' />
-                                <Text style={{...FONTS.fontSm,color:COLORS.white,opacity:.6}}>+158 4844 4400</Text>
-                            </View>
+                            <Text style={{...FONTS.h6,color:COLORS.white,marginBottom:7}}>{walletName}</Text>
                         </View>
                     </ImageBackground>
                     <View

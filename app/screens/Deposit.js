@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, forwardRef } from 'react';
-import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import axios from 'axios';
 import HeaderBar from '../layout/header';
 import BalanceChart from '../components/totalBalanceChart';
@@ -12,12 +12,37 @@ import Share from 'react-native-share';
 import Clipboard from '@react-native-clipboard/clipboard';
 import 'text-encoding';
 import Snackbar from 'react-native-snackbar';
+import { useTheme, useNavigation } from '@react-navigation/native';
+import FontAwesome from 'react-native-vector-icons/FontAwesome'; // For QR code icon
+import ButtonOutline from '../components/Button/ButtonOutline';
 
 
+const CustomRbSheet = forwardRef(({ children }, ref) => {
+  return (
+    <RBSheet
+      height={750}
+      ref={ref}
+      openDuration={300}
+      draggable={true}
+      closeOnDragDown={true}
+      closeOnPressBack={true}
+      customStyles={{
+        wrapper: {
+          backgroundColor: 'transparent',
+        },
+        draggableIcon: {
+          backgroundColor: '#000',
+        },
+      }}>
+      {children}
+    </RBSheet>
+  )
+})
 
 const Deposit = ({ route }) => {
   const { tokenId } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
+  const [amount, setAmount] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [tokenData, setTokenData] = useState('');
   const [transactions, setTransactions] = useState([]);
@@ -25,8 +50,11 @@ const Deposit = ({ route }) => {
   const [error, setError] = useState(null);
   const refRBSheet = useRef();
   const refRBSheet2 = useRef();
-  
+  const { colors } = useTheme();
+
   const [priceChange, setPriceChange] = useState(0);
+  const [isFocused, setIsFocused] = useState(false);
+  const [senderAddress, setSenderAddress] = useState('');
 
   // const getAddressFromSeed = () => {
   //   return new Promise(async (resolve, reject) => {
@@ -64,22 +92,27 @@ const Deposit = ({ route }) => {
   }
 
   const copyToClipboard = () => {
-      Clipboard.setString(walletAddress);
-      Snackbar.show({
-          text: 'Copied',
-          backgroundColor: COLORS.success,
-          duration: Snackbar.LENGTH_SHORT,
-      });
+    Clipboard.setString(walletAddress);
+    Snackbar.show({
+      text: 'Copied',
+      backgroundColor: COLORS.success,
+      duration: Snackbar.LENGTH_SHORT,
+    });
+  };
+
+  const pasteAddress = async () => {
+    const clipboardContent = await Clipboard.getString();
+    setSenderAddress(clipboardContent); 
   };
 
   const fetchTransactions = async (address) => {
     try {
-        const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
-        const url = `https://api.bscscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
+      const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
+      const url = `https://api.bscscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
 
-        const response = await fetch(url);
-        const data = await response.json();
-        return data.result;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data.result;
     } catch (er) {
       setError(er.message);
       return [];
@@ -95,15 +128,13 @@ const Deposit = ({ route }) => {
         subject: `My  Wallet Address`,
         url: walletAddress,
       };
-  
-      // Open the share dialog
+
       await Share.open(shareOptions);
     } catch (error) {
-      // console.error('Error sharing address: ', error);
       setError(error.message);
     }
   };
-  
+
 
 
   useEffect(() => {
@@ -145,11 +176,11 @@ const Deposit = ({ route }) => {
     return <ActivityIndicator size="large" style={{ flex: 1 }} />;
   }
 
-  if(error) {
+  if (error) {
     Snackbar.show({
-        text: error,
-        backgroundColor: COLORS.danger,
-        duration: Snackbar.LENGTH_SHORT,
+      text: error,
+      backgroundColor: COLORS.danger,
+      duration: Snackbar.LENGTH_SHORT,
     });
   }
 
@@ -174,24 +205,51 @@ const Deposit = ({ route }) => {
       )}
 
 
-      {/* Receive */}
-      <RBSheet
-        height={750}
-        ref={refRBSheet}
-        openDuration={300}
-        draggable={true}
-        closeOnDragDown={true}
-        closeOnPressBack={true}
-        customStyles={{
-          wrapper: {
-            backgroundColor: 'transparent',
-          },
-          draggableIcon: {
-            backgroundColor: '#000',
-          },
-        }}
+      {/* Send */}
+      <CustomRbSheet ref={refRBSheet2}>
+        <View style={{ margin: 10 }}>
+          <Text style={styles.label}>Address</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              value={senderAddress}
+              onChangeText={text => setSenderAddress(text)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              placeholderTextColor="#888"
+              style={[
+                styles.textInput,
+                isFocused && styles.inputActive
+              ]}
+              placeholder="Sender Wallet Address"
+            />
+            <View style={styles.inputActions}>
+              <TouchableOpacity onPress={pasteAddress}>
+                <Text style={styles.pasteText}>Paste</Text>
+              </TouchableOpacity>
+              <FontAwesome name="qrcode" size={20} color="#000" />
+            </View>
+          </View>
 
-      >
+          {/* Amount Input */}
+          <Text style={styles.label}>Amount</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              value={amount}
+              onChangeText={text => setAmount(text)}
+              keyboardType="numeric"
+              style={styles.textInput}
+              placeholder="Enter Amount"
+            />
+          </View>
+        </View>
+        <View style={styles.footerSend}>
+          <ButtonOutline title="Send" />
+        </View>
+
+      </CustomRbSheet>
+
+      {/* Receive */}
+      <CustomRbSheet ref={refRBSheet}>
         <View style={styles.modalOverlay}>
           <View style={styles.container}>
             {/* Warning Banner */}
@@ -226,8 +284,7 @@ const Deposit = ({ route }) => {
             </View>
           </View>
         </View>
-      </RBSheet>
-
+      </CustomRbSheet>
 
       <View style={styles.footer}>
         <Text style={styles.tokenName}>Current {tokenData.symbol.toUpperCase()} Price</Text>
@@ -409,6 +466,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#888',
     marginTop: 20,
+  },
+
+
+
+
+  label: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 5,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  textInput: {
+    flex: 1,
+    height: 40,
+    paddingHorizontal: 10,
+    color: '#333',
+  },
+  inputActive: {
+    borderColor: '#00A4E4', // Active input border color
+  },
+  inputActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  pasteText: {
+    color: '#007BFF',
+    marginRight: 10,
+  },
+  footerSend: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 10,
   },
 });
 
