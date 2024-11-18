@@ -53,7 +53,7 @@ const Markets = () => {
             <ActivityIndicator size="large" color="green" />
         </View>
     }
-
+ 
     return (
         <>
             <View style={{ ...styles.container, backgroundColor: colors.background }}>
