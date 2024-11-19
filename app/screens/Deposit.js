@@ -1,48 +1,18 @@
-import React, { useEffect, useState, useRef, forwardRef } from 'react';
-import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import axios from 'axios';
 import HeaderBar from '../layout/header';
 import BalanceChart from '../components/totalBalanceChart';
 import { FONTS, COLORS } from '../constants/theme';
 import { ethers } from 'ethers';
-import * as Keychain from 'react-native-keychain';
-import QRCode from 'react-native-qrcode-svg';
-import RBSheet from "react-native-raw-bottom-sheet";
-import Share from 'react-native-share';
-import Clipboard from '@react-native-clipboard/clipboard';
 import 'text-encoding';
 import Snackbar from 'react-native-snackbar';
-import { useTheme, useNavigation } from '@react-navigation/native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome'; // For QR code icon
-import ButtonOutline from '../components/Button/ButtonOutline';
+import SenderSheet from '../components/BottomSheet/SenderSheet';
+import RecipientSheet from '../components/BottomSheet/RecipientSheet';
 
-
-const CustomRbSheet = forwardRef(({ children }, ref) => {
-  return (
-    <RBSheet
-      height={750}
-      ref={ref}
-      openDuration={300}
-      draggable={true}
-      closeOnDragDown={true}
-      closeOnPressBack={true}
-      customStyles={{
-        wrapper: {
-          backgroundColor: 'transparent',
-        },
-        draggableIcon: {
-          backgroundColor: '#000',
-        },
-      }}>
-      {children}
-    </RBSheet>
-  )
-})
 
 const Deposit = ({ route }) => {
   const { tokenId } = route.params;
-  const [modalVisible, setModalVisible] = useState(false);
-  const [amount, setAmount] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [tokenData, setTokenData] = useState('');
   const [transactions, setTransactions] = useState([]);
@@ -50,11 +20,8 @@ const Deposit = ({ route }) => {
   const [error, setError] = useState(null);
   const refRBSheet = useRef();
   const refRBSheet2 = useRef();
-  const { colors } = useTheme();
 
   const [priceChange, setPriceChange] = useState(0);
-  const [isFocused, setIsFocused] = useState(false);
-  const [senderAddress, setSenderAddress] = useState('');
 
   // const getAddressFromSeed = () => {
   //   return new Promise(async (resolve, reject) => {
@@ -91,20 +58,6 @@ const Deposit = ({ route }) => {
     return '0x21295aaAb6a1c2a88bB09BECfB51833469096063';
   }
 
-  const copyToClipboard = () => {
-    Clipboard.setString(walletAddress);
-    Snackbar.show({
-      text: 'Copied',
-      backgroundColor: COLORS.success,
-      duration: Snackbar.LENGTH_SHORT,
-    });
-  };
-
-  const pasteAddress = async () => {
-    const clipboardContent = await Clipboard.getString();
-    setSenderAddress(clipboardContent); 
-  };
-
   const fetchTransactions = async (address) => {
     try {
       const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
@@ -118,23 +71,6 @@ const Deposit = ({ route }) => {
       return [];
     }
   };
-
-  const onShareAddress = async () => {
-    try {
-
-      const shareOptions = {
-        title: 'Share Wallet Address',
-        message: `My Public Address to Receive ${tokenData.symbol.toUpperCase()}\n. Pay me via High Wealth`,
-        subject: `My  Wallet Address`,
-        url: walletAddress,
-      };
-
-      await Share.open(shareOptions);
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
 
 
   useEffect(() => {
@@ -206,85 +142,11 @@ const Deposit = ({ route }) => {
 
 
       {/* Send */}
-      <CustomRbSheet ref={refRBSheet2}>
-        <View style={{ margin: 10 }}>
-          <Text style={styles.label}>Address</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              value={senderAddress}
-              onChangeText={text => setSenderAddress(text)}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholderTextColor="#888"
-              style={[
-                styles.textInput,
-                isFocused && styles.inputActive
-              ]}
-              placeholder="Sender Wallet Address"
-            />
-            <View style={styles.inputActions}>
-              <TouchableOpacity onPress={pasteAddress}>
-                <Text style={styles.pasteText}>Paste</Text>
-              </TouchableOpacity>
-              <FontAwesome name="qrcode" size={20} color="#000" />
-            </View>
-          </View>
-
-          {/* Amount Input */}
-          <Text style={styles.label}>Amount</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              value={amount}
-              onChangeText={text => setAmount(text)}
-              keyboardType="numeric"
-              style={styles.textInput}
-              placeholder="Enter Amount"
-            />
-          </View>
-        </View>
-        <View style={styles.footerSend}>
-          <ButtonOutline title="Send" />
-        </View>
-
-      </CustomRbSheet>
+      
+      <SenderSheet currency={tokenData.symbol.toUpperCase()} refRBSheet={refRBSheet2} />
 
       {/* Receive */}
-      <CustomRbSheet ref={refRBSheet}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.container}>
-            {/* Warning Banner */}
-            <View style={styles.warningBanner}>
-              <Text style={styles.warningText}>
-                ⚠️ Only send {tokenData.symbol.toUpperCase()} assets to this address. Other assets will be lost forever.
-              </Text>
-            </View>
-
-            {/* QR Code with Logo */}
-            <View style={styles.qrCodeContainer}>
-              <QRCode
-                value={walletAddress}
-                size={250}
-                logo={require('../assets/images/logo-full-white.png')} // Local logo image
-                logoSize={30}
-                logoBorderRadius={10}
-                logoMargin={10}
-                logoBackgroundColor="black"
-              />
-              <Text style={styles.addressText}>{walletAddress}</Text>
-            </View>
-
-            {/* Action Buttons */}
-            <View style={styles.buttonRow}>
-              <TouchableOpacity onPress={copyToClipboard} style={styles.button}>
-                <Text style={styles.buttonText}>Copy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={onShareAddress} style={styles.button}>
-                <Text style={styles.buttonText}>Share</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </CustomRbSheet>
+      <RecipientSheet COLORS={COLORS} walletAddress={walletAddress} tokenData={tokenData} refRBSheet={refRBSheet} />
 
       <View style={styles.footer}>
         <Text style={styles.tokenName}>Current {tokenData.symbol.toUpperCase()} Price</Text>
@@ -332,99 +194,7 @@ const styles = StyleSheet.create({
     ...FONTS.h6,
     fontWeight: 'bold',
   },
-  priceChangePositive: {
-    color: 'green',
-  },
-  priceChangeNegative: {
-    color: 'red',
-  },
-
-  warningBanner: {
-    backgroundColor: '#594A1E',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    margin: 20
-  },
-  warningText: {
-    color: '#F0B90B',
-    fontSize: 12,
-    textAlign: 'center',
-  },
-  cryptoInfo: {
-    // flexDirection: 'row',
-    // alignItems: 'center',
-    marginHorizontal: 20,
-  },
-  cryptoText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#F0B90B',
-    marginRight: 5,
-  },
-  chainText: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
-  qrCodeContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 10,
-    borderRadius: 15,
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  addressText: {
-    fontSize: 14,
-    color: '#333333',
-    marginTop: 10,
-    textAlign: 'center',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    width: '100%',
-    marginHorizontal: 20,
-  },
-  button: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    backgroundColor: '#2C2C2E',
-    width: '50%',
-    marginHorizontal: 2
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-  depositButton: {
-    backgroundColor: '#2C2C2E',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    width: '100%',
-    marginTop: 20,
-  },
-  depositText: {
-    color: '#32CD32',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  depositSubText: {
-    color: '#8E8E93',
-    fontSize: 12,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: 20
-
-  },
-
-
+  
   header: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -466,49 +236,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#888',
     marginTop: 20,
-  },
-
-
-
-
-  label: {
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 5,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginBottom: 15,
-  },
-  textInput: {
-    flex: 1,
-    height: 40,
-    paddingHorizontal: 10,
-    color: '#333',
-  },
-  inputActive: {
-    borderColor: '#00A4E4', // Active input border color
-  },
-  inputActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-  },
-  pasteText: {
-    color: '#007BFF',
-    marginRight: 10,
-  },
-  footerSend: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 10,
-  },
+  }
 });
 
 export default Deposit;

@@ -72,7 +72,7 @@ const StackNavigator = () => {
     <View style={[styles.container,{backgroundColor:colors.background}]}>
         <MyStatusBar barStyle={theme.dark ? "light-content" : "dark-content"} />
         <Stack.Navigator
-          initialRouteName="drawernavigation"
+          initialRouteName="intro"
           screenOptions={{
             headerShown: false,
             cardStyle: { backgroundColor: "transparent" },

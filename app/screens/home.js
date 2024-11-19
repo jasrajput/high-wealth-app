@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import {
     View,
     StyleSheet,
@@ -9,73 +9,66 @@ import {
     Text
 } from 'react-native';
 import { useTheme, useNavigation } from '@react-navigation/native';
-import { COLORS, FONTS, ICONS, SIZES } from '../constants/theme';
+import { COLORS, FONTS, SIZES } from '../constants/theme';
 import { GlobalStyleSheet } from '../constants/styleSheet';
-import * as Animatable from 'react-native-animatable';
 import BalanceChart from '../components/totalBalanceChart';
-import axios from 'axios';
-
+import SearchCoin from '../components/searchCoin';
+import RBSheet from "react-native-raw-bottom-sheet";
+import useFetchCoinData from '../hooks/useFetchCoinData';
 
 const Home = () => {
 
-    const {colors} = useTheme();
+    const { colors } = useTheme();
     const theme = useTheme();
     const navigation = useNavigation();
 
-    const [coinData, setCoinData] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const refRBSheet = useRef();
+    const coinIds = ['bitcoin', 'ethereum', 'tether', 'ripple', 'binancecoin', 'dogecoin', 'solana', 'usd-coin', 'cardano', 'tron', 'sui'];
+    const { coinData, loading, error } = useFetchCoinData(coinIds, 'usd');
 
-    useEffect(() => {
-        const fetchCoinData = async () => {
-            try {
-                const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {
-                    params: {
-                        vs_currency: 'usd',
-                        ids: 'bitcoin,ethereum,tether,ripple,binancecoin,dogecoin,solana,usd-coin,cardano,tron,sui',
-                    }
-                });
+    if (error) {
+        return <Text style={{ color: 'red', textAlign: 'center', marginTop: 20 }}>{error}</Text>;
+    }
 
-                const adaptedData = response.data.map((coin, index) => ({
-                    id: (index + 1).toString(),
-                    coin: coin.image,
-                    coinName: coin.name,
-                    amount: `$${coin.current_price.toFixed(2)}`,
-                    trade: `${coin.price_change_percentage_24h.toFixed(2)}%`,
-                    tag: coin.symbol.toUpperCase(),
-                    tokenId: coin.id
-                }));
+    const onSend = () => {
+        refRBSheet.current?.open();
+    }
 
-                setCoinData(adaptedData);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching coin data:", error);
-                setLoading(false);
-            }
-        };
+    return (
+        loading ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="green" />
+            </View>
+        ) : (
+            <View style={{ ...styles.container, backgroundColor: colors.background }}>
+                <ScrollView>
+                    <BalanceChart onSend={onSend} />
 
-        fetchCoinData();
-    }, []);
+                    <RBSheet
+                        ref={refRBSheet}
+                        closeOnPressBack={true}
+                        closeOnDragDown={true}
+                        height={SIZES.height}
+                        openDuration={300}
+                        customStyles={{
+                            container: {
+                                backgroundColor: colors.background,
+                            },
+                            draggableIcon: {
+                                width: 90,
+                                height: 0,
+                                backgroundColor: colors.borderColor
+                            }
+                        }}
+                    >
+                        <SearchCoin coinData={coinData} refRb={refRBSheet} />
+                    </RBSheet>
 
-    return(
-        <View style={{...styles.container,backgroundColor:colors.background}}>
-            <ScrollView>
-                {
-                    loading ? (
-                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                            <ActivityIndicator size="large" color="#0000ff" />
-                        </View>
-                    ): (
-                        <Animatable.View
-                    animation="fadeInRight" 
-                    duration={1000}
-                    delay={2000}
-                >
-                    <BalanceChart />
 
                     <ScrollView>
-                    {
-                        coinData.map((data) => (
-                            <View key={data.id} style={[styles.coinList, { backgroundColor: theme.colors.card },
+                        {
+                            coinData.map((data) => (
+                                <View key={data.id} style={[styles.coinList, { backgroundColor: theme.colors.card },
                                 theme.dark && {
                                     backgroundColor: theme.colors.background,
                                     paddingHorizontal: 0,
@@ -114,7 +107,7 @@ const Home = () => {
                                                 }}
                                             />
                                         </View>
-            
+
                                         <TouchableOpacity onPress={() => navigation.navigate('deposit', {
                                             tokenId: data.tokenId
                                         })}>
@@ -132,7 +125,7 @@ const Home = () => {
                                             </View>
                                         </TouchableOpacity>
                                     </View>
-            
+
                                     <View
                                         style={{
                                             alignItems: 'flex-end',
@@ -141,24 +134,21 @@ const Home = () => {
                                     >
                                         <Text style={{ ...FONTS.font, ...FONTS.fontMedium, color: theme.colors.title, marginBottom: 5 }}>0.00</Text>
                                         {/* Dollar Value for coin*/}
-            
+
                                     </View>
                                 </View>
-                        ))
-                    }
+                            ))
+                        }
+                    </ScrollView>
                 </ScrollView>
-                </Animatable.View>
-                    )
-                }
-            </ScrollView>
-                
-        </View>
+            </View>
+        )
     )
 }
 
 const styles = StyleSheet.create({
-    container:{
-        flex:1,
+    container: {
+        flex: 1,
     },
 
     coinList: {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     View,
     Text,
@@ -14,43 +14,31 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 import { useTheme } from '@react-navigation/native';
 import { TouchableOpacity } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import SenderSheet from '../components/BottomSheet/SenderSheet';
 
-const coinData = [
-    {
-        id:'1',
-        coinIcon:IMAGES.bitcoin,
-        coinName:'Bitcoin',
-        currency:'BTC',
-        amount:'3,123.3',
-    },
-    {
-        id:'2',
-        coinIcon:IMAGES.ethereum,
-        coinName:'Einsteinium',
-        currency:'EMC',
-        amount:'3,123.3',
-    },
-    {
-        id:'3',
-        coinIcon:IMAGES.dash,
-        coinName:'ETP',
-        currency:'ETP',
-        amount:'3,123.3',
-    },
-    {
-        id:'4',
-        coinIcon:IMAGES.ripple,
-        coinName:'Flux',
-        currency:'Flux',
-        amount:'3,123.3',
-    },
-]
-
-
-const SearchCoin = ({refRBSheet}) => {
+const SearchCoin = ({coinData, refRb}) => {
 
     const {colors} = useTheme();
     const theme = useTheme();
+    const [searchQuery, setSearchedQuery] = useState('');
+    const [filteredData, setFilteredData] = useState(coinData);
+    const [selectedCurrency, setSelectedCurrency] = useState(null);
+    const ref = useRef();
+
+    const handleSearch = (text) => {
+        setSearchedQuery(text);
+
+        if(text.trim() === '') {
+            // Reset to show all coins
+            setFilteredData(coinData);
+        } else {
+            const filtered = coinData.filter((item) =>
+                item.coinName.toLowerCase().includes(text.toLowerCase()) ||
+                item.tag.toLowerCase().includes(text.toLowerCase())
+            );
+            setFilteredData(filtered);
+        }
+    }
 
     return(
         <SafeAreaView>
@@ -61,7 +49,7 @@ const SearchCoin = ({refRBSheet}) => {
                 }}
             >
                 <TouchableOpacity
-                    onPress={() => refRBSheet.current.close()}
+                    onPress={() => refRb.current.close()}
                     style={{
                         padding:12,
                     }}
@@ -82,19 +70,24 @@ const SearchCoin = ({refRBSheet}) => {
                         top:1,
                     }}
                     placeholder='Search here..'
+                    value={searchQuery}
                     placeholderTextColor={colors.text}
+                    onChangeText={handleSearch}
                 />
-            </View>   
+            </View>
             
             <FlatList
                 style={{
                     height:SIZES.height - 175
                 }}
-                data={coinData}
+                data={filteredData}
                 renderItem={({item}) => (
                     <View>
                         <TouchableOpacity
-                            onPress={() => refRBSheet.current.close()}
+                            onPress={() => {
+                                setSelectedCurrency(item.tag);
+                                ref.current.open();
+                            }}
                             style={[{
                                 flexDirection:'row',
                                 alignItems:'center',
@@ -109,10 +102,10 @@ const SearchCoin = ({refRBSheet}) => {
                                     borderRadius:30,
                                     marginRight:10,
                                 }}
-                                source={item.coinIcon}
+                                source={{uri: item.coin}}
                             />
                             <Text style={{...FONTS.font,...FONTS.fontMedium,color:colors.title,flex:1}}>{item.coinName}</Text>
-                            <Text style={{...FONTS.fontSm,color:colors.text}}>{item.currency}</Text>
+                            <Text style={{...FONTS.fontSm,color:colors.text}}>{item.tag}</Text>
                         </TouchableOpacity>
                         <LinearGradient
                             start={{x: 0, y: 0}} end={{x: 1, y: 0}}
@@ -127,6 +120,8 @@ const SearchCoin = ({refRBSheet}) => {
                 )}
                 keyExtractor={(item) => item.id}
             />
+
+            <SenderSheet currency={selectedCurrency} refRBSheet={ref} />
 
         </SafeAreaView>
     )
