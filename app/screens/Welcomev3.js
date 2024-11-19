@@ -54,8 +54,8 @@ const WelcomeV3 = () => {
     const savePhrase = async () => {
         await Keychain.setGenericPassword("recoveryPhrase", recoveryPhrase, { service: "recoveryData" });
         console.log('Recovery phrase saved securely');
-        navigation.replace('welcomev4', {
-            // wallet: wallet
+        navigation.navigate('welcomeImport', {
+            phrases: phraseWords
         });
     }
 

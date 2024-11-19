@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
     View,
@@ -9,6 +9,7 @@ import {
 import AppIntroSlider from 'react-native-app-intro-slider';
 import { INTRO } from '../constants/theme';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const slides = [
   {
@@ -37,6 +38,22 @@ const Intro = () => {
     const [showRealApp, setShowRealApp] = useState(false);
     const navigation = useNavigation();
 
+    useEffect(() => {
+      const hasVisitBefore = async () => {
+        const firstPhase = await AsyncStorage.getItem('firstPhase');
+        const secondPhase = await AsyncStorage.getItem('secondPhase');
+        if(firstPhase) {
+          if(secondPhase) {
+            navigation.replace("welcomev3");
+          } else {
+            navigation.replace("welcome");
+          }
+        }
+        
+      }
+      hasVisitBefore();
+    }, [])
+
     const renderItem = ({ item }) => {
       return (
         <View style={styles.container}>
@@ -53,7 +70,9 @@ const Intro = () => {
 
     const onDone = () => {
       setShowRealApp(true);
-      navigation.replace("welcome");
+      AsyncStorage.setItem('firstPhase', 'done').then(() => {
+        navigation.replace("welcome");
+      });
     }
 
     return(

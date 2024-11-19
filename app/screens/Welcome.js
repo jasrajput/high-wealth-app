@@ -22,7 +22,7 @@ const Welcome = () => {
             </View>
             
             <View style={{flex: 1, justifyContent: 'flex-end', position: 'relative', bottom: 90, margin: 10}}>
-                <ButtonOutline onPress={() => navigation.navigate('welcomev2')} title="Create a new wallet" />
+                <ButtonOutline onPress={() => navigation.navigate('welcomev3')} title="Create a new wallet" />
                 <Button onPress={() => navigation.navigate('welcomeImport')} style={{marginTop: 15}} title="I already have a wallet" />
             </View>
         </View>

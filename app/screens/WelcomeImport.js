@@ -39,22 +39,20 @@ const WelcomeImport = () => {
         words.pop();
         words.push(item);
         setRecoveryPhrase(words.join(' ') + ' ');
-        inputRef.current.focus();
       };
       
       
 
     const generateSuggestions = (input) => {
         if (input.length > 0) {
-            const matchedWords = wordlists.english.filter((word) =>
-                word.startsWith(input.toLowerCase())
-            );
+            const matchedWords = wordlists.english
+                .filter((word) => word.startsWith(input.toLowerCase()))
+                .slice(0, 5); // Limit to first 5 matches
             setSuggestions(matchedWords);
         } else {
             setSuggestions([]);
         }
     };
-
 
 
     const restorePhrase = async () => {
@@ -98,7 +96,7 @@ const WelcomeImport = () => {
                 value={recoveryPhrase}
                 onChangeText={(text) => {
                     setRecoveryPhrase(text);
-                    generateSuggestions(text.split(' ').pop() || ''); // Generate suggestions for the last word
+                    generateSuggestions(text.split(' ').pop() || '');
                 }}
                 onFocus={() => setisFocused(true)}
                 onBlur={() => setisFocused(false)}
@@ -110,7 +108,7 @@ const WelcomeImport = () => {
                 placeholder='Enter your recovery phrase'
             />
 
-            <ScrollView horizontal={false} contentContainerStyle={{flex: 1}}>
+            <ScrollView horizontal={false} contentContainerStyle={{flex: 1}} keyboardShouldPersistTaps={'always'}>
                 <View
                     style={{
                         flexDirection: 'row',
