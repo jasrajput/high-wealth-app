@@ -9,14 +9,15 @@ import {
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation } from '@react-navigation/native';
-import { FONTS, COLORS, SIZES } from '../constants/theme';
+import { FONTS, COLORS } from '../constants/theme';
 import ButtonOutline from '../components/Button/ButtonOutline';
 import 'react-native-get-random-values';
 import Snackbar from 'react-native-snackbar';
 import * as Keychain from 'react-native-keychain';
 import { generateMnemonic } from 'bip39';
 import { Buffer } from 'buffer';
-import { ethers } from 'ethers';
+import { ethers } from '../../custom-ether';
+
 
 global.Buffer = Buffer;
 
@@ -37,9 +38,9 @@ const WelcomeV3 = () => {
                 setPhraseWords(mnemonic.split(' '));
                 setLoading(false);
 
-                // const wallet = ethers.Wallet.fromMnemonic(mnemonic);
-                // console.log(wallet)
-                // setWallet(wallet);
+                const wallet = ethers.Wallet.fromPhrase(mnemonic);
+                console.log(wallet)
+                setWallet(wallet);
 
             } catch (error) {
                 console.error('Error generating keys:', error);

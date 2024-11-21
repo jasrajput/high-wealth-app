@@ -13,7 +13,7 @@ import { FONTS, COLORS, SIZES } from '../constants/theme';
 import ButtonOutline from '../components/Button/ButtonOutline';
 import * as Keychain from 'react-native-keychain';
 import Snackbar from 'react-native-snackbar';
-import { ethers } from 'ethers';
+import { ethers } from '../../custom-ether';
 import { wordlists } from "bip39";
 
 let title = 'Secret Recovery Phrase'
@@ -27,8 +27,6 @@ const WelcomeImport = ({ route }) => {
         paragraph = 'You’ve just backed up your recovery phrase. Please verify it by entering the words below.'
         button = 'Verify'
     }
-    console.log(phrases);
-
 
     const navigation = useNavigation();
     const { colors } = useTheme();
@@ -40,9 +38,10 @@ const WelcomeImport = ({ route }) => {
 
     const validateRecoveryPhrase = (phrase) => {
         try {
-            const wallet = ethers.Wallet.fromMnemonic(phrase);
+            const wallet = ethers.Wallet.fromPhrase(phrase);
             return wallet;
         } catch (error) {
+            console.log(error);
             return error;
         }
     };
@@ -90,8 +89,9 @@ const WelcomeImport = ({ route }) => {
                 }
     
                 console.log('Recovery phrase verified successfully');
+                const wallet = validateRecoveryPhrase(recoveryPhrase);
                 navigation.navigate('welcomev4', {
-                    // wallet: wallet // Assuming you have a valid wallet object ready for navigation
+                    wallet: wallet // Assuming you have a valid wallet object ready for navigation
                 });
             } else {
                 // If `phrases` doesn't exist, we're in the import mode (restore)
@@ -100,9 +100,12 @@ const WelcomeImport = ({ route }) => {
                 }
     
                 const wallet = validateRecoveryPhrase(recoveryPhrase);
+                console.log(wallet);
                 if (!wallet.address) {
                     throw new Error('Invalid recovery phrase');
                 }
+
+                return;
     
                 await Keychain.setGenericPassword("recoveryPhrase", recoveryPhrase, { service: "recoveryData" });
                 console.log('Recovery phrase saved securely');

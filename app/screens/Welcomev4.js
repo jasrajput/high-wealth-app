@@ -17,8 +17,8 @@ import Snackbar from 'react-native-snackbar';
 import * as Keychain from 'react-native-keychain';
 
 const WelcomeV4 = ({route}) => {
-    // const { wallet } = route.params;
-    // console.log(wallet)
+    const { wallet } = route.params;
+    console.log(wallet)
     const navigation = useNavigation();
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -35,8 +35,8 @@ const WelcomeV4 = ({route}) => {
             throw new Error('Password do not match');
           }
 
-            // const wal = await wallet.encrypt(password);
-            // console.log(wal);
+            const wal = wallet.encrypt(password);
+            console.log(wal);
             await Keychain.setGenericPassword("userPassword", password, { service: "userPassword" });
             navigation.navigate('drawernavigation');
         } catch (error) {

@@ -17,9 +17,11 @@ module.exports = {
     }),
   },
   resolver: {
-    extraNodeModules: {
-      stream: require.resolve('stream-browserify'),
-      events: require.resolve('events'),  // Add this line
-    },
+    extraNodeModules: require('node-libs-react-native')
+
+    // extraNodeModules: {
+    //   stream: require.resolve('stream-browserify'),
+    //   events: require.resolve('events'),  // Add this line
+    // },
   },
 };

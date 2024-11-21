@@ -42,13 +42,13 @@ const Intro = () => {
       const hasVisitBefore = async () => {
         const firstPhase = await AsyncStorage.getItem('firstPhase');
         const secondPhase = await AsyncStorage.getItem('secondPhase');
-        if(firstPhase) {
-          if(secondPhase) {
-            navigation.replace("welcomev3");
-          } else {
-            navigation.replace("drawernavigation");
-          }
-        }
+        // if(firstPhase) {
+        //   if(secondPhase) {
+        //     navigation.replace("welcomev3");
+        //   } else {
+        //     navigation.replace("drawernavigation");
+        //   }
+        // }
         
       }
       hasVisitBefore();
