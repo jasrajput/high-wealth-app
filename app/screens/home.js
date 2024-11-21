@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
     View,
     StyleSheet,
@@ -15,6 +15,7 @@ import BalanceChart from '../components/totalBalanceChart';
 import SearchCoin from '../components/searchCoin';
 import RBSheet from "react-native-raw-bottom-sheet";
 import useFetchCoinData from '../hooks/useFetchCoinData';
+import { ethers } from "ethers";
 
 const Home = () => {
 
@@ -33,6 +34,33 @@ const Home = () => {
     const onSend = () => {
         refRBSheet.current?.open();
     }
+
+   
+
+      useEffect(() => {
+        const getBnbBalance = async (userAddress) => {
+            try {
+              // Create a provider connected to the BSC network
+              const provider =  new ethers.providers.JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545/");
+          
+              // Fetch the balance in wei (BNB's smallest unit)
+              const balanceWei = await provider.getBalance(userAddress);
+          
+              // Convert the balance from wei to BNB using formatUnits
+              const balanceBnb = ethers.utils.formatUnits(balanceWei, 18); // BNB has 18 decimal places
+          
+              console.log(`BNB Balance: ${balanceBnb} BNB`);
+          
+              return balanceBnb;
+            } catch (error) {
+              console.error('Error fetching BNB balance:', error);
+              return null;
+            }
+          };
+
+        getBnbBalance("0xbfD47Cb7B74E9D0F6397C0Df02FAFeA8983362AF");
+      }, [])
+      
 
     return (
         loading ? (

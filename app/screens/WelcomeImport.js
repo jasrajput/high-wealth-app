@@ -9,14 +9,27 @@ import {
     ScrollView,
 } from 'react-native';
 import { useTheme, useNavigation } from '@react-navigation/native';
-import { WELCOMEIMAGES, FONTS, COLORS, SIZES } from '../constants/theme';
+import { FONTS, COLORS, SIZES } from '../constants/theme';
 import ButtonOutline from '../components/Button/ButtonOutline';
 import * as Keychain from 'react-native-keychain';
 import Snackbar from 'react-native-snackbar';
 import { ethers } from 'ethers';
 import { wordlists } from "bip39";
 
-const WelcomeImport = () => {
+let title = 'Secret Recovery Phrase'
+let paragraph = "Please give us your secret recovery phrase so we can restore it";
+let button = "Restore";
+const WelcomeImport = ({ route }) => {
+    const {phrases} = route.params;
+    
+    if(phrases) {
+        title = 'Verify Recovery Phrase';
+        paragraph = 'You’ve just backed up your recovery phrase. Please verify it by entering the words below.'
+        button = 'Verify'
+    }
+    console.log(phrases);
+
+
     const navigation = useNavigation();
     const { colors } = useTheme();
     const [isFocused, setisFocused] = useState(false);
@@ -57,20 +70,46 @@ const WelcomeImport = () => {
 
     const restorePhrase = async () => {
         try {
-            if (!recoveryPhrase) {
-                throw new Error("Recovery phrase cannot be empty");
+            // If the user is verifying a phrase, check if input matches the backup phrase
+            if (phrases && phrases.length > 0) {
+                if (!recoveryPhrase) {
+                    throw new Error("Please enter the recovery phrase to verify.");
+                }
+    
+                // Split the entered phrase and compare it to the backed-up phrase
+                const enteredWords = recoveryPhrase.split(' ');
+                if (enteredWords.length !== phrases.length) {
+                    throw new Error("Recovery phrase does not match the original backup.");
+                }
+    
+                // Compare each word in the recovery phrase
+                for (let i = 0; i < enteredWords.length; i++) {
+                    if (enteredWords[i] !== phrases[i]) {
+                        throw new Error(`Word ${i + 1} does not match the backup phrase.`);
+                    }
+                }
+    
+                console.log('Recovery phrase verified successfully');
+                navigation.navigate('welcomev4', {
+                    // wallet: wallet // Assuming you have a valid wallet object ready for navigation
+                });
+            } else {
+                // If `phrases` doesn't exist, we're in the import mode (restore)
+                if (!recoveryPhrase) {
+                    throw new Error("Recovery phrase cannot be empty");
+                }
+    
+                const wallet = validateRecoveryPhrase(recoveryPhrase);
+                if (!wallet.address) {
+                    throw new Error('Invalid recovery phrase');
+                }
+    
+                await Keychain.setGenericPassword("recoveryPhrase", recoveryPhrase, { service: "recoveryData" });
+                console.log('Recovery phrase saved securely');
+                navigation.navigate('welcomev4', {
+                    wallet: wallet
+                });
             }
-
-            const wallet = validateRecoveryPhrase(recoveryPhrase);
-            if (!wallet.address) {
-                throw new Error('Invalid recovery phrase');
-            }
-
-            await Keychain.setGenericPassword("recoveryPhrase", recoveryPhrase, { service: "recoveryData" });
-            console.log('Recovery phrase saved securely');
-            navigation.navigate('welcomev4', {
-                wallet: wallet
-            })
         } catch (error) {
             return Snackbar.show({
                 text: error.message,
@@ -79,13 +118,14 @@ const WelcomeImport = () => {
             });
         }
     };
+    
 
     return (
         <View style={{ flex: 1, marginHorizontal: 10, marginVertical: 20 }}>
 
-            <Text style={{ ...FONTS.h4, textAlign: 'center' }}>Secret Recovery Phrase</Text>
+            <Text style={{ ...FONTS.h4, textAlign: 'center' }}>{title}</Text>
             <Text style={{ ...FONTS.xs, textAlign: 'center', marginTop: 5, paddingHorizontal: 10 }}>
-                Please give us your secret recovery phrase so we can restore it
+                {paragraph}
             </Text>
             <Text style={{ marginTop: 20 }}>Secret Recover Phrase</Text>
 
@@ -137,7 +177,7 @@ const WelcomeImport = () => {
             </ScrollView>
 
             <View style={{ flex: 1, justifyContent: 'flex-end', position: 'relative', bottom: 10, margin: 10 }}>
-                <ButtonOutline onPress={restorePhrase} title="Restore" />
+                <ButtonOutline onPress={restorePhrase} title={button} />
             </View>
         </View>
     )

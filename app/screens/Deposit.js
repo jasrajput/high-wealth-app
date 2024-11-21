@@ -9,6 +9,8 @@ import 'text-encoding';
 import Snackbar from 'react-native-snackbar';
 import SenderSheet from '../components/BottomSheet/SenderSheet';
 import RecipientSheet from '../components/BottomSheet/RecipientSheet';
+import * as Keychain from 'react-native-keychain';
+
 
 
 const Deposit = ({ route }) => {
@@ -54,8 +56,8 @@ const Deposit = ({ route }) => {
   // };
 
   const getAddressFromSeed = () => {
-    setWalletAddress("0x21295aaAb6a1c2a88bB09BECfB51833469096063");
-    return '0x21295aaAb6a1c2a88bB09BECfB51833469096063';
+    setWalletAddress("0xbfD47Cb7B74E9D0F6397C0Df02FAFeA8983362AF");
+    return '0xbfD47Cb7B74E9D0F6397C0Df02FAFeA8983362AF';
   }
 
   const fetchTransactions = async (address) => {

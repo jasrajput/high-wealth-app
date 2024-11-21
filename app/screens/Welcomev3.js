@@ -8,7 +8,7 @@ import {
     TouchableOpacity
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {  useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { FONTS, COLORS, SIZES } from '../constants/theme';
 import ButtonOutline from '../components/Button/ButtonOutline';
 import 'react-native-get-random-values';
@@ -26,6 +26,7 @@ const WelcomeV3 = () => {
     const [wallet, setWallet] = useState(null);
     const [loading, setLoading] = useState(true);
     const [phraseWords, setPhraseWords] = useState([]);
+    const [showPhrase, setShowPhrase] = useState(false);
 
 
     useEffect(() => {
@@ -39,7 +40,7 @@ const WelcomeV3 = () => {
                 // const wallet = ethers.Wallet.fromMnemonic(mnemonic);
                 // console.log(wallet)
                 // setWallet(wallet);
-            
+
             } catch (error) {
                 console.error('Error generating keys:', error);
                 setLoading(false);
@@ -52,15 +53,25 @@ const WelcomeV3 = () => {
 
 
     const savePhrase = async () => {
-        await Keychain.setGenericPassword("recoveryPhrase", recoveryPhrase, { service: "recoveryData" });
-        console.log('Recovery phrase saved securely');
-        navigation.navigate('welcomeImport', {
-            phrases: phraseWords
-        });
+        if(showPhrase) {
+            await Keychain.setGenericPassword("recoveryPhrase", recoveryPhrase, { service: "recoveryData" });
+            console.log('Recovery phrase saved securely');
+            navigation.navigate('welcomeImport', {
+                phrases: phraseWords
+            });
+        } else {
+            Snackbar.show({
+                text: 'Please backup your phrase first',
+                backgroundColor: COLORS.danger,
+                duration: Snackbar.LENGTH_SHORT,
+            });
+    
+        }
     }
 
 
     const copyToClipboard = () => {
+        console.log('clicked');
         Clipboard.setString(recoveryPhrase);
         Snackbar.show({
             text: 'Copied',
@@ -70,59 +81,79 @@ const WelcomeV3 = () => {
     };
 
 
-    if(loading) {
+    if (loading) {
         return <ActivityIndicator size="large" style={{ flex: 1 }} />;
     }
 
     return (
-        <View style={{ flex: 1, }}>
-            <View
-                style={{ flex: 1, marginTop: 100 }}>
+        <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, marginTop: 100 }}>
                 <Text style={{ ...FONTS.h4, textAlign: 'center' }}>Secret Recovery Phrase</Text>
                 <Text style={{ ...FONTS.xs, textAlign: 'center', marginTop: 5 }}>
-                    This is the only way you will be able to recover your account.Please store it somewhere safe!
+                    This is the only way you will be able to recover your account. Please store it somewhere safe!
                 </Text>
             </View>
-            
+
             <View style={styles.phraseContainer}>
-                {phraseWords.map((word, index) => (
-                    <View key={index + index} style={styles.wordContainer}>
-                        <Text style={styles.wordNumber}>{index + 1}</Text>
-                        <Text style={styles.wordText}>{word}</Text>
-                    </View>
-                ))}
-                {
-                    phraseWords.length > 0 && (
-                        <TouchableOpacity style={styles.copyButton} onPress={copyToClipboard}>
+                {/* Background overlay for hiding the phrases */}
+                {!showPhrase && (
+                    <TouchableOpacity
+                        style={styles.overlay}
+                        onPress={() => setShowPhrase(true)} // Toggle state when overlay is tapped
+                    >
+                        <Text style={styles.overlayText}>Tap to reveal phrase</Text>
+                    </TouchableOpacity>
+                )}
+
+                {/* Phrase content */}
+                {showPhrase && (
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
+                        {phraseWords.map((word, index) => (
+                            <View key={index} style={styles.wordContainer}>
+                                <Text style={styles.wordNumber}>{index + 1}</Text>
+                                <Text style={styles.wordText}>{word}</Text>
+                            </View>
+                        ))}
+
+                        {/* <TouchableOpacity style={styles.copyButton} onPress={copyToClipboard}>
                             <Text style={styles.copyButtonText}>📋 Copy to clipboard</Text>
-                        </TouchableOpacity>
-                    )
-                }
+                        </TouchableOpacity> */}
+                    </View>
+                )}
             </View>
 
             <View style={{ flex: 1, justifyContent: 'flex-end', position: 'relative', bottom: 10, margin: 10 }}>
-                <ButtonOutline onPress={savePhrase}  title="Okay, I have it saved" />
+                <ButtonOutline onPress={savePhrase} title="Okay, I have it saved" />
             </View>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
-    privateKey: {
-        fontSize: 16,
-        color: '#333',
-    },
-
-    generateButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
     phraseContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
+        flex: 1,
         justifyContent: 'center',
+        alignItems: 'center',
         marginVertical: 20,
+        position: 'relative',
+    },
+    overlay: {
+        height: 300,
+        width: '80%',
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(54, 54, 135, 0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 15,
+        zIndex: 10,
+        opacity: 0.4,
+    },
+    overlayText: {
+        color: '#000',
+        fontSize: 18,
+        fontWeight: 'bold',
     },
     wordContainer: {
         flexDirection: 'row',
@@ -149,12 +180,14 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 8,
+        zIndex: 30,
+
     },
     copyButtonText: {
         color: '#000',
         textAlign: 'center',
         fontSize: 16,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
     },
 })
 

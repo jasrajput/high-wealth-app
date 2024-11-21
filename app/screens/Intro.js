@@ -46,7 +46,7 @@ const Intro = () => {
           if(secondPhase) {
             navigation.replace("welcomev3");
           } else {
-            navigation.replace("welcome");
+            navigation.replace("drawernavigation");
           }
         }
         
