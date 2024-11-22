@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Status</title>
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      text-align: center;
+    }
+    .content {
+      background-color: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .content img {
+      width: 100px;
+    }
+    .content p {
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    .content button {
+      text-decoration: none;
+      color: white;
+      background-color: #28a745;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .content button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="content">
+      <img src="<%= orderDetails.order_status === 'PAID' ? 'https://img.icons8.com/color/96/000000/checked.png' : 'https://img.icons8.com/color/96/000000/cancel.png' %>" alt="Status Icon" />
+      <h2 style="color: '<%= orderDetails.order_status === "PAID" ? "#28a745" : "#e74c3c" %>';">
+        Payment <%= orderDetails.order_status === 'PAID' ? 'Confirmed' : 'Failed' %>
+      </h2>
+      <p>Your payment has been <%= orderDetails.order_status === 'PAID' ? 'successfully processed.' : 'failed.' %></p>
+      <p>Order ID: <strong><%= orderDetails.order_id %></strong></p>
+      <p>Amount: <strong>Rs.<%= orderDetails.order_amount %></strong></p>
+      <p>Payment Status: <strong><%= orderDetails.order_status %></strong></p>
+      <button onclick="goBack()">Go Back</button>
+    </div>
+  </div>
+
+  <script>
+    function goBack() {
+      const orderData = {
+        orderId: '<%= orderDetails.order_id %>',
+        amount: '<%= orderDetails.order_amount %>',
+        paymentStatus: '<%= orderDetails.order_status %>',
+        method: 'Topup',
+        created_at: '<%= orderDetails.created_at %>',
+        customer_name: '<%= orderDetails.customer_details.customer_name %>',
+      };
+
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        action: 'closeWebView',
+        orderData: orderData
+      }));
+    }
+  </script>
+
+</body>
+</html>

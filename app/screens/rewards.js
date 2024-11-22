@@ -39,35 +39,42 @@ const socialLink = [
 const tableData = [
     {
         num:'#1',
-        split:'8%',
-        referrals:'3',
-        amount:'(0.01 BTC)',
+        split:'25%',
     },
     {
         num:'#2',
-        split:'6%',
-        referrals:'13',
-        amount:'(0.03 BTC)',
+        split:'20%',
     },
     {
         num:'#3',
-        split:'3%',
-        referrals:'25',
-        amount:'(0.02 BTC)',
+        split:'15%',
     },
     {
         num:'#4',
-        split:'2%',
-        referrals:'37',
-        amount:'(0.05 BTC)',
+        split:'10%',
     },
     {
         num:'#5',
-        split:'1%',
-        referrals:'59',
-        amount:'(0.04 BTC)',
+        split:'8%',
     },
+    {
+        num:'#6',
+        split:'7%',
+    },
+    {
+        num:'#7',
+        split:'6%',
+    },
+    {
+        num:'#8',
+        split:'5%',
+    },
+    {
+        num:'#9',
+        split:'3%',
+    }
 ]
+
 
 
 
@@ -249,7 +256,7 @@ const Rewards = () => {
                                             />
                                         </View>
                                     </View>
-                                    <Text style={{...FONTS.font,color:colors.title}}>Lifetime Reward</Text>
+                                    <Text style={{...FONTS.font,color:colors.title}}>Total Rewards</Text>
                                     <View
                                         style={{
                                             flexDirection:'row',
@@ -257,24 +264,6 @@ const Rewards = () => {
                                         }}
                                     >
                                         <Text style={{...FONTS.h5,...FONTS.fontMedium,lineHeight:37,color:colors.title}}>75.33</Text>
-                                    </View>
-                                    <View
-                                        style={{
-                                            flexDirection:'row',
-                                            alignItems:'center',
-                                        }}
-                                    >
-                                        <Image
-                                            style={{
-                                                height:16,
-                                                width:16,
-                                                borderRadius:16,
-                                                resizeMode:'contain',
-                                                marginRight:5,
-                                            }}
-                                            source={IMAGES.bitcoin}
-                                        />
-                                        <Text style={{...FONTS.fontSm,color:colors.text}}>0.015 BTC</Text>
                                     </View>
                                 </View>
                             </View>
@@ -295,9 +284,7 @@ const Rewards = () => {
                                 }]}
                             >
                                 <Text style={{...FONTS.font,color:colors.title,flexGrow:150,paddingHorizontal:10}}>#</Text>
-                                <Text style={{...FONTS.font,color:colors.title,flexGrow:100,paddingHorizontal:10}}>Reward Split</Text>
-                                <Text style={{...FONTS.font,color:colors.title,flexGrow:100,paddingHorizontal:10}}>Referrals</Text>
-                                <Text style={{...FONTS.font,color:colors.title,flexGrow:100,paddingHorizontal:10,textAlign:'right'}}>Amount Earned</Text>
+                                <Text style={{...FONTS.font,color:colors.title,flexGrow:220,paddingHorizontal:10}}>Reward</Text>
                             </View>
                             {tableData.map((data,index) => {
                                 return(
@@ -309,8 +296,6 @@ const Rewards = () => {
                                     >
                                         <Text style={{...FONTS.font,color:colors.text,flexGrow:100,paddingHorizontal:10}}>{data.num}</Text>
                                         <Text style={{...FONTS.font,color:colors.text,flexGrow:150,paddingHorizontal:10}}>{data.split}</Text>
-                                        <Text style={{...FONTS.font,color:colors.text,flexGrow:100,paddingHorizontal:10}}>{data.referrals}</Text>
-                                        <Text style={{...FONTS.font,color:colors.text,flexGrow:100,paddingHorizontal:10,textAlign:'right'}}>{data.amount}</Text>
                                     </View>
                                 )
                             })}

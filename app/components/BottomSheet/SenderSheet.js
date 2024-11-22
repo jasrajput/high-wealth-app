@@ -4,20 +4,20 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import CryptoActionsSheet from './CryptoActionsSheet';
 import ButtonOutline from '../Button/ButtonOutline';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { useNavigation } from '@react-navigation/native';
 
-const SendCryptoActionsSheet = ({ currency, refRBSheet, address, scan }) => {
-    console.log("Sender sheet: ", address);
-
+const SendCryptoActionsSheet = ({ currency, refRBSheet, address, scan, onTransfer }) => {
     const [senderAddress, setSenderAddress] = useState(address);
     const [amount, setAmount] = useState('');
     const [isFocused, setIsFocused] = useState(false);
-    const navigation = useNavigation();
 
     const pasteAddress = async () => {
         const clipboardContent = await Clipboard.getString();
         setSenderAddress(clipboardContent); 
     };
+
+    const handleTransfer = () => {
+        onTransfer(senderAddress, amount);
+    }
     
     useEffect(() => {
         setSenderAddress(address);
@@ -62,7 +62,7 @@ const SendCryptoActionsSheet = ({ currency, refRBSheet, address, scan }) => {
             </View>
 
             <View style={styles.footerSend}>
-                <ButtonOutline title="Send" />
+                <ButtonOutline onPress={handleTransfer} title="Send" />
             </View>
 
         </CryptoActionsSheet>

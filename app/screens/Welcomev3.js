@@ -62,20 +62,19 @@ const WelcomeV3 = () => {
                 backgroundColor: COLORS.danger,
                 duration: Snackbar.LENGTH_SHORT,
             });
-    
         }
     }
 
 
-    const copyToClipboard = () => {
-        console.log('clicked');
-        Clipboard.setString(recoveryPhrase);
-        Snackbar.show({
-            text: 'Copied',
-            backgroundColor: COLORS.success,
-            duration: Snackbar.LENGTH_SHORT,
-        });
-    };
+    // const copyToClipboard = () => {
+    //     console.log('clicked');
+    //     Clipboard.setString(recoveryPhrase);
+    //     Snackbar.show({
+    //         text: 'Copied',
+    //         backgroundColor: COLORS.success,
+    //         duration: Snackbar.LENGTH_SHORT,
+    //     });
+    // };
 
 
     if (loading) {

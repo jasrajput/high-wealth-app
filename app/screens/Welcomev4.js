@@ -15,11 +15,11 @@ import ButtonOutline from '../components/Button/ButtonOutline';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Snackbar from 'react-native-snackbar';
 import * as Keychain from 'react-native-keychain';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { scrypt } from 'react-native-scrypt';
 
 const WelcomeV4 = ({route}) => {
     const { wallet } = route.params;
-    console.log(wallet)
     const navigation = useNavigation();
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -39,7 +39,9 @@ const WelcomeV4 = ({route}) => {
             // const wal = wallet.encrypt(password);
             // console.log(wal);
             await Keychain.setGenericPassword("userPassword", password, { service: "userPassword" });
-            navigation.navigate('drawernavigation');
+            AsyncStorage.setItem('thirdPhase', 'done').then(() => {
+              navigation.replace("signup");
+            });
         } catch (error) {
            return Snackbar.show({
                 text: error.message,

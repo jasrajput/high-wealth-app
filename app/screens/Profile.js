@@ -12,23 +12,23 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 import HeaderBar from '../layout/header';
 import { COLORS, FONTS, ICONS, IMAGES, SIZES } from '../constants/theme';
 import { GlobalStyleSheet } from '../constants/styleSheet';
-import * as Keychain from 'react-native-keychain';
+// import * as Keychain from 'react-native-keychain';
 
 const Profile = ({navigation}) => {
 
     const {colors} = useTheme();
     const [imgUrl , setImgUrl] = useState(null);
-    const [walletName , setWalletName] = useState('');
+    // const [walletName , setWalletName] = useState('');
 
-    useEffect(() => {
-        async function getWalletName() {
-            const userWallet = await Keychain.getGenericPassword({ service: "walletName" });
-            setWalletName(userWallet.password);
-        }
+    // useEffect(() => {
+    //     async function getWalletName() {
+    //         const userWallet = await Keychain.getGenericPassword({ service: "walletName" });
+    //         setWalletName(userWallet.password);
+    //     }
 
-        getWalletName();
+    //     getWalletName();
 
-    }, [])
+    // }, [])
     
 
     const navLinks = [
@@ -48,21 +48,21 @@ const Profile = ({navigation}) => {
             title : "Rewards",
             navigate : "rewards",
         },
-        {
-            icon : ICONS.wallet,
-            title : "Payment",
-            navigate : "paymentMethod",
-        },
+        // {
+        //     icon : ICONS.wallet,
+        //     title : "Payment",
+        //     navigate : "paymentMethod",
+        // },
         {
             icon : ICONS.support,
             title : "Helpdesk",
             navigate : "helpdesk",
         },
-        {
-            icon : ICONS.logout,
-            title : "Logout",
-            navigate : "signin",
-        },
+        // {
+        //     icon : ICONS.logout,
+        //     title : "Logout",
+        //     navigate : "signin",
+        // },
     ]
 
 
@@ -91,14 +91,14 @@ const Profile = ({navigation}) => {
                         source={IMAGES.bg1}
                         style={{
                             flexDirection:'row',
-                            paddingHorizontal:40,
-                            paddingVertical:18,
+                            paddingHorizontal:30,
+                            paddingVertical:13,
                             borderRadius:SIZES.radius_lg,
                             overflow:'hidden',
                             alignItems:'center',
                         }}
                     >
-                        <View style={{marginRight:18,borderWidth:3,borderRadius:80,borderColor:'rgba(255,255,255,.1)'}}>
+                        <View style={{marginRight:20,borderWidth:3,borderRadius:80,borderColor:'rgba(255,255,255,.1)'}}>
                             
                             <TouchableOpacity
                                 activeOpacity={.9}
@@ -118,7 +118,7 @@ const Profile = ({navigation}) => {
                             </TouchableOpacity>
                         </View>
                         <View>
-                            <Text style={{...FONTS.h6,color:COLORS.white,marginBottom:7}}>{walletName}</Text>
+                            <Text style={{...FONTS.h6,color:COLORS.white,marginBottom:7}}>Multi-chain wallet</Text>
                         </View>
                     </ImageBackground>
                     <View

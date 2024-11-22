@@ -95,7 +95,9 @@ const BalanceChart = ({ headerTitle, header, onSend, onReceive, balance, balance
                     marginBottom: 8,
                 }}>Total Balance</Text>
             <Text style={{ ...FONTS.h2, color: COLORS.white }}>{balance ?? '0.00'}</Text>
-            <Text style={{ ...FONTS.h6, color: COLORS.white }}>{balanceUSD}</Text>
+            {
+                balanceUSD && <Text style={{ ...FONTS.h6, color: COLORS.white }}>{balanceUSD}</Text>
+            }
             
             <View
                 style={{

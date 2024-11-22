@@ -1,0 +1,52 @@
+curl --location 'https://api.cashfree.com/pg/orders' \
+--header 'X-Client-Secret: cfsk_ma_prod_7b4cb02313c66a794d405d52da399e31_06834fec' \
+--header 'X-Client-Id: 630118e65e7432da25d356d9c9811036' \
+--header 'x-api-version: 2022-01-01' \
+--header 'Content-Type: application/json' \
+--header 'Accept: application/json' \
+--data-raw '{
+  "order_amount": 2,
+  "order_currency": "INR",
+  "customer_details": {
+   "customer_id": "Rahul_Tok_99",
+    "customer_name": "Rahul",
+    "customer_email": "rahul@cashfree.com",
+    "customer_phone": "+917814683715",
+    "order_expiry_time":"2024-09-27T14:43:20+05:30"
+  },
+  "order_meta": { 
+    "return_url": "https://b8af79f41056.eu.ngrok.io?order_id={order_id}",
+   
+    "notify_url": "https://webhook.site/f06d7197-25bb-4497-a732-69848c980765",
+    "payment_methods":"cc,dc,upi,banktransfer"
+  }
+}'
+
+
+
+curl --location 'https://sandbox.cashfree.com/pg/orders' \
+--header 'X-Client-Secret: cfsk_ma_test_67539452bac96821ba1e72319bf9db90_ced5da22' \
+--header 'X-Client-Id: TEST10125468999cbdd2294dd043d62586452101' \
+--header 'x-api-version: 2023-08-01' \
+--header 'Content-Type: application/json' \
+--header 'Accept: application/json' \
+--data-raw '{
+  "order_amount": 2,
+  "order_currency": "INR",
+  
+  "customer_details": {
+   "customer_id": "Rahul_Tok_99",
+    "customer_name": "Rahul",
+    "customer_email": "rahul@cashfree.com",
+    "customer_phone": "8826572848",
+    "order_expiry_time":"2024-09-27T14:43:20+05:30"
+  },
+
+  "order_meta": { 
+    "return_url": "https://b8af79f41056.eu.ngrok.io?order_id={order_id}",
+   
+    "notify_url": "https://webhook.site/f06d7197-25bb-4497-a732-69848c980765",
+    "payment_methods":"cc,dc,upi,banktransfer"
+  }
+}
+'

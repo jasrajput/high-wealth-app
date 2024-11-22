@@ -24,22 +24,20 @@ const Home = () => {
     const theme = useTheme();
     const navigation = useNavigation();
     const [balances, setBalances] = useState({});
-
     const refRBSheet = useRef();
     const coinIds = ['bitcoin', 'ethereum', 'tether', 'ripple', 'binancecoin', 'dogecoin', 'solana', 'usd-coin', 'cardano', 'tron', 'sui'];
-
-
 
     if (error) {
         return <Text style={{ color: 'red', textAlign: 'center', marginTop: 20 }}>{error}</Text>;
     }
 
-    const onSend = () => {
+    const openSheet = () => {
         refRBSheet.current?.open();
     }
 
     const getBalance = async () => {
         const walletAddress = await getAddressFromSeed();
+        console.log("walletAddress: ", walletAddress)
         const url = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
         const body = JSON.stringify({
             jsonrpc: '2.0',
@@ -60,7 +58,6 @@ const Home = () => {
             return parseInt(balance, 16) / Math.pow(10, 18);
         } catch (error) {
             return 0;
-            // console.error('Error fetching balance:', error);
         }
     };
 
@@ -77,16 +74,20 @@ const Home = () => {
     };
 
     useEffect(() => {
-        getWalletBalances().then(res => setBalances(res))
-    }, [])
-
-    const { coinData, loading, error } = useFetchCoinData(coinIds, 'usd', balances);
-    const totalBalance = coinData
-    .reduce((acc, data) => acc + (parseFloat(data.usdValue) || 0), 0)
-    .toFixed(2);
-
-    console.log(totalBalance);
+        const fetchBalances = async () => {
+            const balances = await getWalletBalances();
+            setBalances(balances);
+        };
     
+        fetchBalances();
+    }, []);
+
+    
+    const { coinData, loading, error } = useFetchCoinData(coinIds, 'usd', balances);
+    const totalBalance = coinData && coinData.length > 0
+    ? coinData.reduce((acc, data) => acc + (parseFloat(data.usdValue) || 0), 0).toFixed(2)
+    : '0.00';
+
     return (
         loading ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -95,7 +96,7 @@ const Home = () => {
         ) : (
             <View style={{ ...styles.container, backgroundColor: colors.background }}>
                 <ScrollView>
-                    <BalanceChart balance={totalBalance} onSend={onSend} onReceive={onSend} />
+                    <BalanceChart balance={`$${totalBalance}`} onSend={openSheet} onReceive={openSheet} />
 
                     <RBSheet
                         ref={refRBSheet}
@@ -187,8 +188,12 @@ const Home = () => {
                                             paddingRight: 5,
                                         }}
                                     >
-                                        <Text style={{ ...FONTS.font, ...FONTS.fontMedium, color: theme.colors.title, marginBottom: 5 }}>{data.balance}</Text>
-                                        <Text style={{ ...FONTS.font, ...FONTS.fontMedium, color: theme.colors.title, marginBottom: 5 }}>${parseFloat(data.usdValue).toFixed(2)}</Text>
+                                        <Text style={{ ...FONTS.font, ...FONTS.fontMedium, color: theme.colors.title, marginBottom: 5 }}>
+                                            {isNaN(Number(data.balance)) ? '0.00' : Number(data.balance).toFixed(2)}
+                                        </Text>
+                                        <Text style={{ ...FONTS.font, ...FONTS.fontMedium, color: theme.colors.title, marginBottom: 5 }}>
+                                            ${isNaN(Number(data.usdValue)) ? '0.00' : Number(data.usdValue).toFixed(2)}
+                                        </Text>
                                     </View>
                                 </View>
                             ))

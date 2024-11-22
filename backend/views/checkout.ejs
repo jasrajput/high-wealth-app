@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Checkout Page</title>
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+  </head>
+  <body>
+    <script>
+      const cashfree = Cashfree({
+        mode: "sandbox", // Change to 'production' in live mode
+      });
+
+      // Automatically trigger the checkout
+      let checkoutOptions = {
+        paymentSessionId: "<%= paymentSessionId %>",
+        redirectTarget: "_self",
+      };
+      cashfree.checkout(checkoutOptions);
+    </script>
+  </body>
+</html>

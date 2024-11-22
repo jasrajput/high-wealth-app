@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
 import {
-    View,
-    Text,
-    StyleSheet,
-    Image,
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ActivityIndicator
 } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import { INTRO } from '../constants/theme';
@@ -34,79 +35,96 @@ const slides = [
 
 
 const Intro = () => {
+  const [showRealApp, setShowRealApp] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
 
-    const [showRealApp, setShowRealApp] = useState(false);
-    const navigation = useNavigation();
-
-    useEffect(() => {
-      const hasVisitBefore = async () => {
-        const firstPhase = await AsyncStorage.getItem('firstPhase');
-        const secondPhase = await AsyncStorage.getItem('secondPhase');
-        if(firstPhase) {
-          if(secondPhase) {
-            navigation.replace("welcomev3");
-          } else {
-            navigation.replace("drawernavigation");
-          }
-        }
-        
-      }
-      hasVisitBefore();
-    }, [])
-
-    const renderItem = ({ item }) => {
-      return (
-        <View style={styles.container}>
-          <View style={styles.imageContainer}>
-            <Image source={item.image} style={styles.image} />
-          </View>
-          <View style={[styles.textContainer, {padding: 10}]}>
-            <Text style={styles.introTitleStyle}>{item.title}</Text>
-            <Text style={styles.introTextStyle}>{item.text}</Text>
-          </View>
-        </View>
-      );
-    };
-
-    const onDone = () => {
-      setShowRealApp(true);
-      AsyncStorage.setItem('firstPhase', 'done').then(() => {
-        navigation.replace("welcome");
-      });
-    }
-
-    return(
-        <>
-            {
-                showRealApp ? (
-                  <Text>Loading..!</Text>
-                ) : (
-                  <AppIntroSlider 
-                      dotStyle={{
-                        backgroundColor: "#000",
-                        width: 42,
-                        position: "relative",
-                        right: "50%",
-                        height: 2,
-                        bottom: 110,
-                      }}
-                      activeDotStyle={{
-                        backgroundColor: "#eee",
-                        width: 42,
-                        position: "relative",
-                        right: "50%",
-                        height: 2,
-                        bottom: 110,
-                      }}
-                      renderItem={renderItem} 
-                      data={slides} 
-                      onDone={onDone}
-                      bottomButton
-                    />
-                  )
+  useEffect(() => {
+    const hasVisitBefore = async () => {
+      const firstPhase = await AsyncStorage.getItem('firstPhase');
+      const secondPhase = await AsyncStorage.getItem('secondPhase');
+      const thirdPhase = await AsyncStorage.getItem('thirdPhase');
+      const fourthPhase = await AsyncStorage.getItem('fourthPhase');
+      
+      if (firstPhase) {
+        if (secondPhase) {
+          if (thirdPhase) {
+            if(fourthPhase) {
+              navigation.replace("drawernavigation");
+            } else {
+              navigation.replace("signup");
             }
-        </>
-    )
+          } else {
+            navigation.replace("welcomev4");
+          }
+        } else {
+          navigation.replace("welcome");
+        }
+      }
+
+    }
+    hasVisitBefore();
+  }, [])
+
+  const renderItem = ({ item }) => {
+    return (
+      <View style={styles.container}>
+        <View style={styles.imageContainer}>
+          <Image source={item.image} style={styles.image} />
+        </View>
+        <View style={[styles.textContainer, { padding: 10 }]}>
+          <Text style={styles.introTitleStyle}>{item.title}</Text>
+          <Text style={styles.introTextStyle}>{item.text}</Text>
+        </View>
+      </View>
+    );
+  };
+
+  const onDone = () => {
+    setShowRealApp(true);
+    AsyncStorage.setItem('firstPhase', 'done').then(() => {
+      navigation.replace("welcome");
+    });
+  }
+
+  if (loading) {
+    return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color="green" />
+    </View>
+  }
+
+  return (
+    <>
+      {
+        showRealApp ? (
+          <Text>Loading..!</Text>
+        ) : (
+          <AppIntroSlider
+            dotStyle={{
+              backgroundColor: "#000",
+              width: 42,
+              position: "relative",
+              right: "50%",
+              height: 2,
+              bottom: 110,
+            }}
+            activeDotStyle={{
+              backgroundColor: "#eee",
+              width: 42,
+              position: "relative",
+              right: "50%",
+              height: 2,
+              bottom: 110,
+            }}
+            renderItem={renderItem}
+            data={slides}
+            onDone={onDone}
+            bottomButton
+          />
+        )
+      }
+    </>
+  )
 }
 
 const styles = StyleSheet.create({

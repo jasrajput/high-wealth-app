@@ -15,12 +15,14 @@ import * as Keychain from 'react-native-keychain';
 import Snackbar from 'react-native-snackbar';
 import { ethers } from '../../custom-ether';
 import { wordlists } from "bip39";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 let title = 'Secret Recovery Phrase'
 let paragraph = "Please give us your secret recovery phrase so we can restore it";
 let button = "Restore";
 const WelcomeImport = ({ route }) => {
-    const {phrases} = route.params;
+    const {phrases = null} = route.params || {};
     
     if(phrases) {
         title = 'Verify Recovery Phrase';
@@ -90,9 +92,15 @@ const WelcomeImport = ({ route }) => {
     
                 console.log('Recovery phrase verified successfully');
                 const wallet = validateRecoveryPhrase(recoveryPhrase);
-                navigation.navigate('welcomev4', {
-                    wallet: wallet // Assuming you have a valid wallet object ready for navigation
+                AsyncStorage.setItem('secondPhase', 'done').then(() => {
+                    navigation.navigate('welcomev4', {
+                        wallet: wallet
+                    });
                 });
+
+                // navigation.navigate('welcomev4', {
+                //     wallet: wallet // Assuming you have a valid wallet object ready for navigation
+                // });
             } else {
                 // If `phrases` doesn't exist, we're in the import mode (restore)
                 if (!recoveryPhrase) {
@@ -104,14 +112,15 @@ const WelcomeImport = ({ route }) => {
                 if (!wallet.address) {
                     throw new Error('Invalid recovery phrase');
                 }
-
-                return;
     
                 await Keychain.setGenericPassword("recoveryPhrase", recoveryPhrase, { service: "recoveryData" });
                 console.log('Recovery phrase saved securely');
-                navigation.navigate('welcomev4', {
-                    wallet: wallet
+                AsyncStorage.setItem('secondPhase', 'done').then(() => {
+                    navigation.navigate('welcomev4', {
+                        wallet: wallet
+                    });
                 });
+                
             }
         } catch (error) {
             return Snackbar.show({

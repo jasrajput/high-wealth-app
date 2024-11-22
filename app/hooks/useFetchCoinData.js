@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const useFetchCoinData = (coinIds = [], currency = 'usd', balance) => {
+
+    console.log(balance);
     const [coinData, setCoinData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -27,8 +29,8 @@ const useFetchCoinData = (coinIds = [], currency = 'usd', balance) => {
                     trade: `${coin.price_change_percentage_24h.toFixed(2)}%`,
                     tag: coin.symbol.toUpperCase(),
                     tokenId: coin.id,
-                    balance: parseFloat(balance[coin.id]) || 0,
-                    usdValue: (parseFloat(balance[coin.id]) || 0) * (parseFloat(coin.current_price) || 0)
+                    balance: parseFloat(balance[coin.id]).toFixed(4) || 0,
+                    usdValue: balance[coin.id] * coin.current_price
                 }));
 
                 setCoinData(adaptedData);
@@ -40,7 +42,7 @@ const useFetchCoinData = (coinIds = [], currency = 'usd', balance) => {
         };
 
         fetchCoinData();
-    }, []);
+    }, [balance]);
 
     return { coinData, loading, error };
 };
