@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import CryptoActionsSheet from './CryptoActionsSheet';
@@ -6,9 +6,10 @@ import ButtonOutline from '../Button/ButtonOutline';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation } from '@react-navigation/native';
 
+const SendCryptoActionsSheet = ({ currency, refRBSheet, address, scan }) => {
+    console.log("Sender sheet: ", address);
 
-const SendCryptoActionsSheet = ({ currency,  refRBSheet }) => {
-    const [senderAddress, setSenderAddress] = useState('');
+    const [senderAddress, setSenderAddress] = useState(address);
     const [amount, setAmount] = useState('');
     const [isFocused, setIsFocused] = useState(false);
     const navigation = useNavigation();
@@ -17,6 +18,11 @@ const SendCryptoActionsSheet = ({ currency,  refRBSheet }) => {
         const clipboardContent = await Clipboard.getString();
         setSenderAddress(clipboardContent); 
     };
+    
+    useEffect(() => {
+        setSenderAddress(address);
+    }, [address]);
+
 
     return (
         <CryptoActionsSheet ref={refRBSheet} title={`Send ${currency}`}>
@@ -39,7 +45,7 @@ const SendCryptoActionsSheet = ({ currency,  refRBSheet }) => {
                         <TouchableOpacity onPress={pasteAddress}>
                             <Text style={styles.pasteText}>Paste</Text>
                         </TouchableOpacity>
-                        <FontAwesome onPress={() => navigation.navigate('scan')} name="qrcode" size={20} color="#000" />
+                        <FontAwesome onPress={scan} name="qrcode" size={20} color="#000" />
                     </View>
                 </View>
 
@@ -58,6 +64,7 @@ const SendCryptoActionsSheet = ({ currency,  refRBSheet }) => {
             <View style={styles.footerSend}>
                 <ButtonOutline title="Send" />
             </View>
+
         </CryptoActionsSheet>
     );
 };
@@ -88,15 +95,15 @@ const styles = StyleSheet.create({
     inputActions: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 10,
+        paddingHorizontal: 20,
     },
     pasteText: {
         color: '#007BFF',
-        marginRight: 10,
+        marginRight: 20,
     },
     footerSend: {
         position: 'absolute',
-        bottom: 20,
+        bottom: 50,
         left: 0,
         right: 0,
         paddingHorizontal: 10,

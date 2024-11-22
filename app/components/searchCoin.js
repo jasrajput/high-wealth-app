@@ -15,21 +15,34 @@ import { useTheme } from '@react-navigation/native';
 import { TouchableOpacity } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import SenderSheet from '../components/BottomSheet/SenderSheet';
+import RecipientSheet from '../components/BottomSheet/RecipientSheet';
+import { getAddressFromSeed } from '../helpers/wallet';
 
 const SearchCoin = ({coinData, refRb}) => {
 
     const {colors} = useTheme();
     const theme = useTheme();
     const [searchQuery, setSearchedQuery] = useState('');
+    const [walletAddress, setWalletAddress] = useState('');
     const [filteredData, setFilteredData] = useState(coinData);
     const [selectedCurrency, setSelectedCurrency] = useState(null);
     const ref = useRef();
+    const ref2 = useRef();
+    
+    useEffect(() => {
+        const fetchWallet = async () => {
+            const address = await getAddressFromSeed();
+            setWalletAddress(address);
+        }
+
+        fetchWallet();
+    }, [])
+    
 
     const handleSearch = (text) => {
         setSearchedQuery(text);
 
         if(text.trim() === '') {
-            // Reset to show all coins
             setFilteredData(coinData);
         } else {
             const filtered = coinData.filter((item) =>
@@ -122,6 +135,8 @@ const SearchCoin = ({coinData, refRb}) => {
             />
 
             <SenderSheet currency={selectedCurrency} refRBSheet={ref} />
+
+            <RecipientSheet COLORS={COLORS} walletAddress={walletAddress} symbol={selectedCurrency} refRBSheet2={ref2} />
 
         </SafeAreaView>
     )

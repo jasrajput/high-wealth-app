@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ripple from 'react-native-material-ripple';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-const BalanceChart = ({ headerTitle, header, onSend, onReceive }) => {
+const BalanceChart = ({ headerTitle, header, onSend, onReceive, balance, balanceUSD }) => {
     const navigation = useNavigation();
 
     return (
@@ -94,7 +94,9 @@ const BalanceChart = ({ headerTitle, header, onSend, onReceive }) => {
                     color: 'rgba(255,255,255,.6)',
                     marginBottom: 8,
                 }}>Total Balance</Text>
-            <Text style={{ ...FONTS.h2, color: COLORS.white }}>$0.00</Text>
+            <Text style={{ ...FONTS.h2, color: COLORS.white }}>{balance ?? '0.00'}</Text>
+            <Text style={{ ...FONTS.h6, color: COLORS.white }}>{balanceUSD}</Text>
+            
             <View
                 style={{
                     flexDirection: 'row',

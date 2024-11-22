@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     View,
     StyleSheet,
@@ -15,17 +15,20 @@ import BalanceChart from '../components/totalBalanceChart';
 import SearchCoin from '../components/searchCoin';
 import RBSheet from "react-native-raw-bottom-sheet";
 import useFetchCoinData from '../hooks/useFetchCoinData';
-import { ethers } from "ethers";
+import { getAddressFromSeed } from '../helpers/wallet';
+
 
 const Home = () => {
 
     const { colors } = useTheme();
     const theme = useTheme();
     const navigation = useNavigation();
+    const [balances, setBalances] = useState({});
 
     const refRBSheet = useRef();
     const coinIds = ['bitcoin', 'ethereum', 'tether', 'ripple', 'binancecoin', 'dogecoin', 'solana', 'usd-coin', 'cardano', 'tron', 'sui'];
-    const { coinData, loading, error } = useFetchCoinData(coinIds, 'usd');
+
+
 
     if (error) {
         return <Text style={{ color: 'red', textAlign: 'center', marginTop: 20 }}>{error}</Text>;
@@ -35,33 +38,55 @@ const Home = () => {
         refRBSheet.current?.open();
     }
 
-   
+    const getBalance = async () => {
+        const walletAddress = await getAddressFromSeed();
+        const url = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
+        const body = JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getBalance',
+            params: [walletAddress, 'latest'],
+        });
 
-      useEffect(() => {
-        const getBnbBalance = async (userAddress) => {
-            try {
-              // Create a provider connected to the BSC network
-              const provider =  new ethers.providers.JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545/");
-          
-              // Fetch the balance in wei (BNB's smallest unit)
-              const balanceWei = await provider.getBalance(userAddress);
-          
-              // Convert the balance from wei to BNB using formatUnits
-              const balanceBnb = ethers.utils.formatUnits(balanceWei, 18); // BNB has 18 decimal places
-          
-              console.log(`BNB Balance: ${balanceBnb} BNB`);
-          
-              return balanceBnb;
-            } catch (error) {
-              console.error('Error fetching BNB balance:', error);
-              return null;
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body,
+            });
+
+            const data = await response.json();
+            const balance = data.result;
+            return parseInt(balance, 16) / Math.pow(10, 18);
+        } catch (error) {
+            return 0;
+            // console.error('Error fetching balance:', error);
+        }
+    };
+
+    const getWalletBalances = async () => {
+        const walletBalances = {};
+        for (const id of coinIds) {
+            if (id === 'binancecoin') {
+                walletBalances[id] = await getBalance();
+            } else {
+                walletBalances[id] = 0;
             }
-          };
+        }
+        return walletBalances;
+    };
 
-        getBnbBalance("0xbfD47Cb7B74E9D0F6397C0Df02FAFeA8983362AF");
-      }, [])
-      
+    useEffect(() => {
+        getWalletBalances().then(res => setBalances(res))
+    }, [])
 
+    const { coinData, loading, error } = useFetchCoinData(coinIds, 'usd', balances);
+    const totalBalance = coinData
+    .reduce((acc, data) => acc + (parseFloat(data.usdValue) || 0), 0)
+    .toFixed(2);
+
+    console.log(totalBalance);
+    
     return (
         loading ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -70,7 +95,7 @@ const Home = () => {
         ) : (
             <View style={{ ...styles.container, backgroundColor: colors.background }}>
                 <ScrollView>
-                    <BalanceChart onSend={onSend} />
+                    <BalanceChart balance={totalBalance} onSend={onSend} onReceive={onSend} />
 
                     <RBSheet
                         ref={refRBSheet}
@@ -95,7 +120,9 @@ const Home = () => {
 
                     <ScrollView>
                         {
-                            coinData.map((data) => (
+                            coinData
+                            .sort((a, b) => b.usdValue - a.usdValue)
+                            .map((data) => (
                                 <View key={data.id} style={[styles.coinList, { backgroundColor: theme.colors.card },
                                 theme.dark && {
                                     backgroundColor: theme.colors.background,
@@ -160,9 +187,8 @@ const Home = () => {
                                             paddingRight: 5,
                                         }}
                                     >
-                                        <Text style={{ ...FONTS.font, ...FONTS.fontMedium, color: theme.colors.title, marginBottom: 5 }}>0.00</Text>
-                                        {/* Dollar Value for coin*/}
-
+                                        <Text style={{ ...FONTS.font, ...FONTS.fontMedium, color: theme.colors.title, marginBottom: 5 }}>{data.balance}</Text>
+                                        <Text style={{ ...FONTS.font, ...FONTS.fontMedium, color: theme.colors.title, marginBottom: 5 }}>${parseFloat(data.usdValue).toFixed(2)}</Text>
                                     </View>
                                 </View>
                             ))

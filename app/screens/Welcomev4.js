@@ -15,6 +15,7 @@ import ButtonOutline from '../components/Button/ButtonOutline';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Snackbar from 'react-native-snackbar';
 import * as Keychain from 'react-native-keychain';
+// import { scrypt } from 'react-native-scrypt';
 
 const WelcomeV4 = ({route}) => {
     const { wallet } = route.params;
@@ -35,8 +36,8 @@ const WelcomeV4 = ({route}) => {
             throw new Error('Password do not match');
           }
 
-            const wal = wallet.encrypt(password);
-            console.log(wal);
+            // const wal = wallet.encrypt(password);
+            // console.log(wal);
             await Keychain.setGenericPassword("userPassword", password, { service: "userPassword" });
             navigation.navigate('drawernavigation');
         } catch (error) {

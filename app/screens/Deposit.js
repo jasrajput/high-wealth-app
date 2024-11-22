@@ -4,61 +4,28 @@ import axios from 'axios';
 import HeaderBar from '../layout/header';
 import BalanceChart from '../components/totalBalanceChart';
 import { FONTS, COLORS } from '../constants/theme';
-import { ethers } from 'ethers';
 import 'text-encoding';
 import Snackbar from 'react-native-snackbar';
 import SenderSheet from '../components/BottomSheet/SenderSheet';
 import RecipientSheet from '../components/BottomSheet/RecipientSheet';
-import * as Keychain from 'react-native-keychain';
-
-
+import { ethers } from '../../custom-ether';
+import { getAddressFromSeed } from '../helpers/wallet';
+import ScanSheet from '../components/BottomSheet/ScanSheet';
 
 const Deposit = ({ route }) => {
   const { tokenId } = route.params;
+  const [address, setAddress] = useState(''); // State to hold the scanned address
   const [walletAddress, setWalletAddress] = useState('');
   const [tokenData, setTokenData] = useState('');
+  const [balance, setBalance] = useState('');
+  const [balanceUsdValue, setBalanceUsdValue] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const refRBSheet = useRef();
   const refRBSheet2 = useRef();
-
+  const scanSheetRef = useRef();
   const [priceChange, setPriceChange] = useState(0);
-
-  // const getAddressFromSeed = () => {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       // Retrieve the seed phrase from the Keychain
-  //       const credentials = await Keychain.getGenericPassword({ service: "recoveryData" });
-  //       if (credentials) {
-  //         const seedPhrase = credentials.password;
-
-  //         try {
-  //           const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
-  //           // const wallet = ethers.HDNodeWallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/0`);
-  //           setWalletAddress(wallet.address);
-
-  //           console.log("User Address: ", wallet.address);
-  //           resolve(wallet.address); // Resolve with the wallet address
-  //         } catch (error) {
-  //           console.error(error);
-  //           reject(error); // Reject if there's an error generating the wallet
-  //         }
-  //       } else {
-  //         console.error("No seed phrase found in Keychain");
-  //         reject("No seed phrase found"); // Reject if no credentials are found
-  //       }
-  //     } catch (error) {
-  //       console.error("Error retrieving credentials:", error);
-  //       reject(error); // Reject if there's an error with Keychain retrieval
-  //     }
-  //   });
-  // };
-
-  const getAddressFromSeed = () => {
-    setWalletAddress("0xbfD47Cb7B74E9D0F6397C0Df02FAFeA8983362AF");
-    return '0xbfD47Cb7B74E9D0F6397C0Df02FAFeA8983362AF';
-  }
 
   const fetchTransactions = async (address) => {
     try {
@@ -74,6 +41,34 @@ const Deposit = ({ route }) => {
     }
   };
 
+  const handleScannedData = (data) => {
+    console.log('Scanned QR Code:', data);
+    setAddress(data);
+  };
+
+  const getBalance = async () => {
+    const url = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
+    const body = JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'eth_getBalance',
+      params: [walletAddress, 'latest'],
+    });
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      });
+
+      const data = await response.json();
+      const balance = data.result;
+      return parseInt(balance, 16) / Math.pow(10, 18);
+    } catch (error) {
+      return 0;
+    }
+  };
 
   useEffect(() => {
     const fetchTokenDetails = async () => {
@@ -82,7 +77,10 @@ const Deposit = ({ route }) => {
         setTokenData(response.data);
 
         const priceChange = response.data.market_data.price_change_percentage_24h;
+        const bal = await getBalance();
         setPriceChange(priceChange);
+        setBalance(bal);
+        setBalanceUsdValue(bal * response.data.market_data.current_price.usd);
       } catch (ex) {
         setError(ex.message);
       }
@@ -90,6 +88,7 @@ const Deposit = ({ route }) => {
 
     const fetchData = async () => {
       const address = await getAddressFromSeed();
+      setWalletAddress(address);
       if (address) {
         try {
           const txs = await fetchTransactions(address);
@@ -125,8 +124,8 @@ const Deposit = ({ route }) => {
   return (
     <View style={styles.container}>
 
-      <HeaderBar title={tokenData.name.toUpperCase() + `(${tokenData.symbol.toUpperCase()})`} leftIcon={'back'} />
-      <BalanceChart onSend={() => refRBSheet2.current.open()} onReceive={() => refRBSheet.current.open()} headerTitle={tokenData.name.toUpperCase()} header={false} />
+      <HeaderBar title={String(tokenData.name).toUpperCase() + `(${String(tokenData.symbol).toUpperCase()})`} leftIcon={'back'} />
+      <BalanceChart balance={balance} balanceUSD={`$${balanceUsdValue}`} onSend={() => refRBSheet2.current.open()} onReceive={() => refRBSheet.current.open()} headerTitle={String(tokenData.name).toUpperCase()} header={false} />
 
       <Text style={styles.header}>Transactions List</Text>
       {transactions.length > 0 ? (
@@ -144,14 +143,17 @@ const Deposit = ({ route }) => {
 
 
       {/* Send */}
-      
-      <SenderSheet currency={tokenData.symbol.toUpperCase()} refRBSheet={refRBSheet2} />
+
+      <SenderSheet scan={() => scanSheetRef.current.open()} address={address} currency={String(tokenData.symbol).toUpperCase()} refRBSheet={refRBSheet2} />
 
       {/* Receive */}
-      <RecipientSheet COLORS={COLORS} walletAddress={walletAddress} tokenData={tokenData} refRBSheet={refRBSheet} />
+      <RecipientSheet COLORS={COLORS} walletAddress={walletAddress} symbol={String(tokenData.symbol).toUpperCase()} refRBSheet2={refRBSheet} />
+
+      {/* Scanner */}
+      <ScanSheet ref={scanSheetRef} onScanSuccess={handleScannedData} />
 
       <View style={styles.footer}>
-        <Text style={styles.tokenName}>Current {tokenData.symbol.toUpperCase()} Price</Text>
+        <Text style={styles.tokenName}>Current {String(tokenData.symbol).toUpperCase()} Price</Text>
         <View style={{ flexDirection: 'row' }}>
           <Text style={styles.tokenPrice}>${tokenData.market_data.current_price.usd}</Text>
           <Text style={[styles.priceChange, { color: priceChange > 0.0000 ? 'green' : 'red' }]}>
@@ -196,7 +198,7 @@ const styles = StyleSheet.create({
     ...FONTS.h6,
     fontWeight: 'bold',
   },
-  
+
   header: {
     fontSize: 18,
     fontWeight: 'bold',

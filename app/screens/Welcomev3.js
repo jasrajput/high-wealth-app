@@ -15,11 +15,7 @@ import 'react-native-get-random-values';
 import Snackbar from 'react-native-snackbar';
 import * as Keychain from 'react-native-keychain';
 import { generateMnemonic } from 'bip39';
-import { Buffer } from 'buffer';
 import { ethers } from '../../custom-ether';
-
-
-global.Buffer = Buffer;
 
 const WelcomeV3 = () => {
     const navigation = useNavigation();

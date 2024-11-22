@@ -52,7 +52,7 @@ import WelcomeV3 from "../screens/Welcomev3";
 import WelcomeV4 from "../screens/Welcomev4";
 import Deposit from "../screens/Deposit";
 import WelcomeImport from "../screens/WelcomeImport";
-import Scan from "../screens/scan";
+// import Scan from "../screens/scan";
 
 
 const MyStatusBar = ({ ...props }) => (
@@ -87,7 +87,7 @@ const StackNavigator = () => {
         <Stack.Screen name="deposit" component={Deposit} />
         
         <Stack.Screen name="welcomeImport" component={WelcomeImport} />
-        <Stack.Screen name="scan" component={Scan} />
+        {/* <Stack.Screen name="scan" component={Scan} /> */}
 
 
           <Stack.Screen name="signin" component={SignIn} />

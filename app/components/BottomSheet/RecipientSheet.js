@@ -6,7 +6,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import CryptoActionsSheet from './CryptoActionsSheet';
 import Snackbar from 'react-native-snackbar';
 
-const RecipientSheet = ({ refRBSheet, walletAddress, COLORS, tokenData }) => {
+const RecipientSheet = ({ refRBSheet2, walletAddress, COLORS, symbol }) => {
     const copyToClipboard = () => {
         Clipboard.setString(walletAddress);
         Snackbar.show({
@@ -22,7 +22,7 @@ const RecipientSheet = ({ refRBSheet, walletAddress, COLORS, tokenData }) => {
     
           const shareOptions = {
             title: 'Share Wallet Address',
-            message: `My Public Address to Receive ${tokenData.symbol.toUpperCase()}\n. Pay me via High Wealth`,
+            message: `My Public Address to Receive ${symbol}\n. Pay me via High Wealth`,
             subject: `My  Wallet Address`,
             url: walletAddress,
           };
@@ -34,13 +34,13 @@ const RecipientSheet = ({ refRBSheet, walletAddress, COLORS, tokenData }) => {
       };
 
     return (
-        <CryptoActionsSheet ref={refRBSheet} title={`Receive ${tokenData.symbol.toUpperCase()}`}>
+        <CryptoActionsSheet ref={refRBSheet2} title={`Receive ${symbol}`}>
             <View style={styles.modalOverlay}>
                 <View style={styles.container}>
                     {/* Warning Banner */}
                     <View style={styles.warningBanner}>
                         <Text style={styles.warningText}>
-                            ⚠️ Only send {tokenData.symbol.toUpperCase()} assets to this address. Other assets will be lost forever.
+                            ⚠️ Only send {symbol} assets to this address. Other assets will be lost forever.
                         </Text>
                     </View>
 
