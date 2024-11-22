@@ -9,6 +9,8 @@ import { SIZES, COLORS, FONTS } from '../../constants/theme';
 import { GlobalStyleSheet } from '../../constants/styleSheet';
 import CustomButton from '../customButton.js';
 import CryptoActionsSheet from './CryptoActionsSheet';
+import * as Keychain from 'react-native-keychain';
+
 
 const TransferSheet = ({ currency, amount, fromAddress, toAddress, refTransfer }) => {
 
