@@ -1,0 +1,40 @@
+# React Native
+node_modules/
+npm-debug.log
+yarn-error.log
+backend/
+# Build directories
+android/.gradle/
+android/app/build/
+android/build/
+ios/build/
+
+# Xcode
+*.xcuserstate
+
+# macOS
+.DS_Store
+
+# React Native Packager
+packager-info.json
+*.log
+*.idea/
+
+# VS Code
+.vscode/
+
+# Expo
+.expo/
+.expo-shared/
+
+# Android Studio
+.idea/
+
+# JetBrains
+*.iml
+*.ipr
+*.iws
+
+# Log files
+*.log
+*.lock
