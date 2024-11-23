@@ -2,8 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth');
-const orderRoutes = require('./routes/order');
-const subscriptionRoutes = require('./routes/subscribe');
+// const orderRoutes = require('./routes/order');
+// const subscriptionRoutes = require('./routes/subscribe');
 
 // Initialize Express
 const app = express();
@@ -17,8 +17,8 @@ app.use(bodyParser.json({
 app.set('view engine', 'ejs');
 app.set('views', './views');  // Ensure views folder exists
 app.use('/api/auth', authRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/subscription', subscriptionRoutes);
+// app.use('/api/orders', orderRoutes);
+// app.use('/api/subscription', subscriptionRoutes);
 // app.use('/', (req, res) => {
 //   res.send("API is working");
 // })

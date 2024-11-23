@@ -24,18 +24,18 @@ const TradeBasic = () => {
     const animatedValue = useRef(new Animated.Value(0)).current;
 
     // Fetch token list and simulate trading
-    useEffect(() => {
-        const fetchTokens = async () => {
-            try {
-                const response = await axios.get('https://open-api.openocean.finance/v3/polygon/tokenList');
-                startBotSimulation(response.data.data);
-            } catch (error) {
-                console.error('Failed to fetch tokens', error);
-            }
-        };
+    // useEffect(() => {
+    //     const fetchTokens = async () => {
+    //         try {
+    //             const response = await axios.get('https://open-api.openocean.finance/v3/polygon/tokenList');
+    //             startBotSimulation(response.data.data);
+    //         } catch (error) {
+    //             console.error('Failed to fetch tokens', error);
+    //         }
+    //     };
 
-        fetchTokens();
-    }, []);
+    //     fetchTokens();
+    // }, []);
 
     const startBotSimulation = (tokenList) => {
         const simulateTrading = () => {
@@ -141,7 +141,7 @@ const TradeBasic = () => {
                         }}
                     >
                         <Text style={{ fontSize: 16, color: '#FFFFFF', marginBottom: 10 }}>
-                            Flash Loan Activated!
+                            Credit Activated!
                         </Text>
                         <Text style={{ fontSize: 36, color: '#55ffc7', fontWeight: 'bold' }}>
                             ${loanAmount}
