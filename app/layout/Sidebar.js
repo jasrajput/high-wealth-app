@@ -129,7 +129,7 @@ function Sidebar() {
                     paddingVertical:20,
                 }}
             >
-                <Text style={{...FONTS.h6,color:colors.title,marginBottom:5}}>Crypto - Mobile Template</Text>
+                <Text style={{...FONTS.h6,color:colors.title,marginBottom:5}}>High Wealth</Text>
                 <Text style={{...FONTS.font,color:colors.text}}>App Version 1.0</Text>
             </View>
         </View>

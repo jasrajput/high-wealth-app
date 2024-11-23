@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema({
     invite_code: { type: String, required: true, unique: true },
     ref_code: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    walletAddress: { type: String, required: true, unique: true }
+    walletAddress: { type: String, required: true, unique: true },
+    isClaimed: { type: Number, default: 0, required: false },
     // phoneNumber: { type: String, required: true },
     // password: { type: String, required: true },
     // deposit_wallet: { type: Number, default: 0, required: true },

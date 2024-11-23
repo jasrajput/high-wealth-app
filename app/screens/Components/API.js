@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default class API {
-    static baseUrl = "http://192.168.1.7:6000/api/";
+    static baseUrl = "http://192.168.1.6:6000/api/";
     
     auth_token = "";
 
@@ -74,9 +74,6 @@ export default class API {
                 this.getToken().then(token => {
                     if (token) {
                         this.requestToBackend(endpoint, data, resolve, reject, token, method, requiresToken);
-                    } else {
-                        // console.error("No token");
-                        // reject("No token");
                     }
                 }).catch(error => {
                     console.error("Error getting token:", error);
@@ -145,6 +142,11 @@ export default class API {
     static transferAmount(data) {
         return this.makeAPICall('auth/transfer', data, 'POST', true)
     }
+
+    static claim(data) {
+        return this.makeAPICall('auth/claim-credit', data, 'POST', true)
+    }
+
 
     // static sendOtp(data) {
     //     return this.makeAPICall("auth/sendOtp", data, 'POST', false);

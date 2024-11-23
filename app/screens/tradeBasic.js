@@ -6,76 +6,199 @@ import {
     Image,
     Text,
     Animated,
-    FlatList,
-    ActivityIndicator
+    ScrollView
 } from 'react-native';
-
+import LottieView from 'lottie-react-native';
 import HeaderBar from '../layout/header';
 import { useTheme } from '@react-navigation/native';
 import axios from 'axios';
+import CustomButton from '../components/customButton';
+import API from './Components/API';
 
 const loanAmount = 1000;
 const TradeBasic = () => {
     const { colors } = useTheme();
-    const [transactions, setTransactions] = useState([]);
-    const [totalProfit, setTotalProfit] = useState(0);
     const [loading, setLoading] = useState(true);
-
+    const [showConfetti, setShowConfetti] = useState(false);
+    const [hasClaimed, setClaimed] = useState(false);
+    const [results, setResults] = useState([]);
     const animatedValue = useRef(new Animated.Value(0)).current;
 
-    // Fetch token list and simulate trading
-    // useEffect(() => {
-    //     const fetchTokens = async () => {
-    //         try {
-    //             const response = await axios.get('https://open-api.openocean.finance/v3/polygon/tokenList');
-    //             startBotSimulation(response.data.data);
-    //         } catch (error) {
-    //             console.error('Failed to fetch tokens', error);
-    //         }
-    //     };
+    const handlePress = async () => {
+        const response = await API.claim({});
+        if (response.status) {
+            setClaimed(true);
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 3000);
+        }
+    };
 
-    //     fetchTokens();
-    // }, []);
-
-    const startBotSimulation = (tokenList) => {
-        const simulateTrading = () => {
-            // Select 10-15 random unique tokens
-            const shuffledTokens = tokenList.sort(() => 0.5 - Math.random());
-            const selectedTokens = shuffledTokens.slice(0, Math.floor(Math.random() * 6) + 10);
-
-            const newTransactions = selectedTokens.map(token => {
-                // Simulate trading logic
-                const amount = Math.random() * 1000;
-                const volatility = Math.random() * 0.2 - 0.1; // -10% to +10%
-                const profit = amount * volatility;
-
-                return {
-                    id: Math.random().toString(),
-                    token: token.symbol,
-                    amount: amount.toFixed(2),
-                    profit: profit.toFixed(2),
-                    timestamp: new Date().toLocaleTimeString(),
-                    image: token.icon
-                };
-            });
-
-            // Update transactions and total profit
-            setTransactions(prev => {
-                const updatedTransactions = [...newTransactions, ...prev].slice(0, 100);
-                return updatedTransactions;
-            });
-
-            setLoading(false);
-
-            // Calculate total profit
-            const newTotalProfit = newTransactions.reduce((sum, tx) => sum + parseFloat(tx.profit), 0);
-            setTotalProfit(prev => prev + newTotalProfit);
+    useEffect(() => {
+        const fetchUserDetails = async () => {
+            const details = await API.getUserDetails();
+            if (details.isClaimed) {
+                setClaimed(true);
+            }
         }
 
-        // Run simulation every few seconds
-        const interval = setInterval(simulateTrading, 3000);
-        return () => clearInterval(interval);
+        fetchUserDetails();
+    }, [])
+
+    const fetchTokenAddresses = async () => {
+        try {
+            const response = await fetch('https://open-api.openocean.finance/v3/polygon/tokenList');
+            const data = await response.json();
+            return data.data
+                .filter(token => token.hot != null)
+                .map(token => ({
+                    outTokenAddress: token.address,
+                }));
+        } catch (error) {
+            console.error('Error fetching token addresses:', error);
+            return [];
+        }
+    };
+
+
+    const fetchPriceFromOpenOcean = async (tokenPair) => {
+        const initialAmount = loanAmount;
+        const inTokenAddress = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
+        const exchangeFeePercentage = 0.35 / 100;
+        const polygonNetworkFee = 0.01;
+        const supportedDexes = ["UniswapV3", "QuickSwapV3"];
+
+        for (let i = 0; i < tokenPair.length; i++) {
+            try {
+                const buyData = await fetchQuote(inTokenAddress, tokenPair[i].outTokenAddress, initialAmount);
+
+                if (buyData && buyData.dexes) {
+                    const priceData = extractDexPrices(buyData, supportedDexes);
+                    if (priceData.length > 0) {
+                        const bestBuy = priceData.reduce((min, p) => p.price < min.price ? p : min, priceData[0]);
+
+                        if (bestBuy.price === 0) {
+                            console.error('Best buy price is zero, cannot calculate profit.');
+                            return;
+                        }
+
+                        const amountAfterBuy = parseFloat(buyData.outAmount) / Math.pow(10, buyData.outToken.decimals);
+
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+
+                        const sellData = await fetchQuote(
+                            tokenPair[i].outTokenAddress,
+                            inTokenAddress,
+                            amountAfterBuy
+                        );
+
+                        if (sellData && sellData.dexes) {
+                            const sellPriceData = extractDexPrices(sellData, supportedDexes);
+                            if (sellPriceData.length > 0) {
+                                const bestSell = sellPriceData.reduce((max, p) => p.price > max.price ? p : max, sellPriceData[0]);
+
+                                const amountAfterSell = parseFloat(sellData.outAmount) / Math.pow(10, sellData.outToken.decimals);
+                                const exchangeFee = calculateFee(initialAmount, exchangeFeePercentage);
+                                const finalNetAmount = amountAfterSell - polygonNetworkFee - exchangeFee;
+                                const netProfit = finalNetAmount - initialAmount;
+                                // displayPriceTable(buyData, priceData, supportedDexes, initialAmount);
+                                displayNetProfitCalculation(initialAmount, buyData, sellData, finalNetAmount, netProfit, bestBuy, bestSell, exchangeFee);
+
+                                // const details = `Initial Amount: ${initialAmount} ${buyData.inToken.symbol}, Buy: ${bestBuy.exchange}, Buy Output: ${(parseFloat(buyData.outAmount) / Math.pow(10, buyData.outToken.decimals)).toFixed(6)} ${buyData.outToken.symbol}, Sell: ${bestSell.exchange}, Sell Output: ${(parseFloat(sellData.outAmount) / Math.pow(10, sellData.outToken.decimals)).toFixed(6)} ${sellData.outToken.symbol}, Net Profit: ${netProfit.toFixed(6)} ${buyData.inToken.symbol}`;
+                                if (netProfit > 0.00) {
+                                    // saveNetProfit(details);
+
+                                    // const buyDexId = (bestBuy.exchange === 'UniswapV3') ? 1 : 3;
+                                    // const sellDexId = (bestSell.exchange === 'QuickSwapV3') ? 3 : 1;
+                                    // const dexList = [buyDexId, sellDexId];
+                                    // const secondaryCurrency = tokenPair[i].outTokenAddress;
+
+                                    // const execution = {
+                                    //     initialAmount: initialAmount,
+                                    //     dexList: dexList,
+                                    //     secondaryCurrency: secondaryCurrency
+                                    // }
+
+                                    // executeTrade(execution);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Add a delay before the next fetch (e.g., to avoid rate limiting)
+                await new Promise(resolve => setTimeout(resolve, 4000));
+            } catch (error) {
+                console.error('Error fetching data from OpenOcean:', error);
+            }
+        }
+    };
+
+    const fetchQuote = async (inTokenAddress, outTokenAddress, amount) => {
+        const openOceanUrl = `https://open-api.openocean.finance/v3/polygon/quote?inTokenAddress=${inTokenAddress}&outTokenAddress=${outTokenAddress}&amount=${amount}&gasPrice=100&slippage=0.5&account=0x0000000000000000000000000000000000000000`;
+
+        try {
+            const response = await fetch(openOceanUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Request failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.data || null;
+        } catch (error) {
+            console.error("Error fetching quote: ", error);
+            return null;
+        }
+    };
+
+
+
+    const extractDexPrices = (data, supportedDexes) => {
+        return data.dexes
+            .filter((dex) => supportedDexes.includes(dex.dexCode))
+            .map((dex) => ({
+                exchange: dex.dexCode,
+                price: parseFloat(dex.swapAmount) / Math.pow(10, data.outToken.decimals),
+            }));
+    };
+
+    const calculateFee = (amount, feePercentage) => amount * feePercentage;
+
+    function displayNetProfitCalculation(initialAmount, buyData, sellData, finalNetAmount, netProfit, bestBuy, bestSell, exchangeFee) {
+        // Extract relevant amounts from buy and sell data
+        const buyOutAmount = parseFloat(buyData.outAmount) / Math.pow(10, buyData.outToken.decimals);
+        const sellOutAmount = parseFloat(sellData.outAmount) / Math.pow(10, sellData.outToken.decimals);
+
+        const profitCard = {
+            id: Math.random(),
+            initialAmount,
+            buyData,
+            sellData,
+            finalNetAmount,
+            netProfit,
+            bestBuy,
+            bestSell,
+            exchangeFee,
+            buyOutAmount,
+            sellOutAmount,
+        };
+
+        setResults(prevResults => [...prevResults, profitCard]);
     }
+
+    useEffect(() => {
+        const init = async () => {
+            const tokenPair = await fetchTokenAddresses();
+            await fetchPriceFromOpenOcean(tokenPair);
+        };
+
+        init();
+    }, []);
 
     useEffect(() => {
         Animated.loop(
@@ -128,84 +251,105 @@ const TradeBasic = () => {
 
     return (
         <>
-            <View style={{ ...styles.container, backgroundColor: colors.background }}>
-                <HeaderBar leftIcon={'back'} title="Trade" />
+            <ScrollView style={{ ...styles.container, backgroundColor: colors.background }}>
+                <HeaderBar leftIcon={'back'} title="Activate Credit" />
                 <View style={{ flex: 1, backgroundColor: '#1A1A1A', padding: 20 }}>
                     <View
                         style={{
-                            backgroundColor: '#2C2C2C',
                             padding: 20,
                             borderRadius: 10,
                             marginBottom: 20,
                             alignItems: 'center',
+                            backgroundColor: '#2C2C2C'
                         }}
                     >
-                        <Text style={{ fontSize: 16, color: '#FFFFFF', marginBottom: 10 }}>
-                            Credit Activated!
-                        </Text>
-                        <Text style={{ fontSize: 36, color: '#55ffc7', fontWeight: 'bold' }}>
-                            ${loanAmount}
-                        </Text>
-                        <Text style={{ fontSize: 14, color: '#AAAAAA', marginTop: 10, textAlign: 'center' }}>
-                            You're now empowered with a flash loan of ${loanAmount}.This will be automatically traded on daily basis.
-                        </Text>
-                    </View>
-
-
-                    {/* Total Profit/Loss Indicator */}
-                    {/* <View style={styles.profitContainer}>
-                        <Text style={styles.profitLabel}>Net Daily Profit</Text>
-                        <Text style={[
-                            styles.profitAmount,
-                            { color: transactions.reduce((sum, t) => sum + t.profit, 0) > 0 ? 'green' : 'red' }
-                        ]}>
-                            ${transactions.reduce((sum, t) => sum + t.profit, 0).toFixed(2)}
-                        </Text>
-                    </View> */}
-
-                    <View>
-                        {/* Transactions List */}
-                        {/* Bot Activity Header */}
-                        <Animated.View style={[
-                            styles.header,
-                            {
-                                transform: [{
-                                    scale: animatedValue.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: [1, 1.1]
-                                    })
-                                }]
-                            }
-                        ]}>
-                            <Text style={styles.headerTitle}>Trading Bot Active</Text>
-                            <Text style={styles.totalProfit}>
-                                Total Profit: ${totalProfit.toFixed(2)}
-                            </Text>
-                        </Animated.View>
-
-
                         {
-                            loading ? <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 100 }}>
-                                <ActivityIndicator size="large" color="green" />
-                            </View> : (
-                                <FlatList
-                                    data={transactions}
-                                    renderItem={renderTransaction}
-                                    keyExtractor={item => item.id}
-                                    style={styles.transactionList}
-                                    removeClippedSubviews={true}
-                                    maxToRenderPerBatch={10}
-                                    windowSize={21}
+                            hasClaimed ? (
+                                <>
+                                    {showConfetti && (
+                                        <>
+                                            <LottieView
+                                                source={require('../assets/json/confetti.json')}
+                                                autoPlay
+                                                loop={false}
+                                                style={styles.lottie}
+                                            />
+                                            <Text style={styles.congratsText}>🎉 Congratulations! 🎉</Text>
+                                            <Text style={styles.subText}>You have activated your credit</Text>
+                                        </>
+                                    )}
 
-                                />
-                            )
+                                    <Text style={{ fontSize: 16, color: '#FFFFFF', marginBottom: 10 }}>
+                                        Credit Activated!
+                                    </Text>
+                                    <Text style={{ fontSize: 36, color: '#55ffc7', fontWeight: 'bold' }}>
+                                        ${loanAmount}
+                                    </Text>
+                                    <Text style={{ fontSize: 14, color: '#AAAAAA', marginTop: 10, textAlign: 'center' }}>
+                                        You're now empowered with a credit of ${loanAmount}.This will be automatically invested and daily return of 0.3% will be given to your wallet.
+                                    </Text>
+                                </>
+                            ) :
+                                <>
+                                    <Text style={styles.infoHeader}>Why Activate Your Credit?</Text>
+                                    <View style={styles.benefitsList}>
+                                        <Text style={styles.bulletPoint}>✅ Earn a daily return of 0.3% automatically.</Text>
+                                        <Text style={styles.bulletPoint}>✅ Start growing your investments effortlessly.</Text>
+                                        <Text style={styles.bulletPoint}>✅ Secure and automated process.</Text>
+                                    </View>
+
+
+                                    <View style={{ width: '100%' }}>
+                                        <CustomButton title="Approve Credit" onPress={handlePress} />
+                                    </View>
+                                </>
                         }
 
-
-
                     </View>
+
+                    {results.map((res) => (
+                        <View style={styles.card} key={res.id}>
+                            <View style={styles.cardBody}>
+                                <Text style={styles.cardTitle}>Net Profit Calculation</Text>
+                                <View style={styles.row}>
+                                    <Text style={styles.label}>Amount:</Text>
+                                    <Text style={styles.value}>{res.initialAmount} {res.buyData.inToken.symbol}</Text>
+                                </View>
+                                <View style={styles.row}>
+                                    <Text style={styles.label}>Buy on {res.bestBuy.exchange}:</Text>
+                                    <Text style={styles.value}>
+                                        {res.initialAmount.toFixed(3)} {res.buyData.inToken.symbol} / {res.buyOutAmount.toFixed(3)} {res.buyData.outToken.symbol}
+                                    </Text>
+                                </View>
+                                <View style={styles.row}>
+                                    <Text style={styles.label}>Sell on {res.bestSell.exchange}:</Text>
+                                    <Text style={styles.value}>
+                                        {res.buyOutAmount.toFixed(3)} {res.sellData.inToken.symbol} / {res.sellOutAmount.toFixed(3)} {res.sellData.outToken.symbol}
+                                    </Text>
+                                </View>
+                                <View style={styles.row}>
+                                    <Text style={styles.label}>Network Fee:</Text>
+                                    <Text style={styles.value}>0.01 {res.buyData.inToken.symbol}</Text>
+                                </View>
+                                <View style={styles.row}>
+                                    <Text style={styles.label}>Exchange Fee (0.35%):</Text>
+                                    <Text style={styles.value}>{res.exchangeFee.toFixed(3)} {res.buyData.inToken.symbol}</Text>
+                                </View>
+                                <View style={styles.row}>
+                                    <Text style={styles.label}>Final Net Amount:</Text>
+                                    <Text style={styles.value}>{res.finalNetAmount.toFixed(3)} {res.buyData.inToken.symbol}</Text>
+                                </View>
+                                <View style={styles.row}>
+                                    <Text style={[styles.label, { color: res.netProfit < 0 ? 'red' : 'green' }]}>Net Profit:</Text>
+                                    <Text style={[styles.value, { color: res.netProfit < 0 ? 'red' : 'green' }]}>{res.netProfit.toFixed(6)} {res.buyData.inToken.symbol}</Text>
+                                </View>
+                            </View>
+                        </View>
+                    ))}
+
+                    <Text></Text><Text></Text><Text></Text>
                 </View>
-            </View>
+            </ScrollView>
         </>
     )
 }
@@ -269,7 +413,99 @@ const styles = StyleSheet.create({
     profit: {
         fontSize: 14,
         fontWeight: 'bold'
-    }
+    },
+
+    lottie: {
+        width: 300,
+        height: 300,
+        position: 'absolute',
+    },
+    congratsText: {
+        fontSize: 24,
+        color: '#fff',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 10,
+    },
+    subText: {
+        fontSize: 16,
+        color: '#ddd',
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+
+    infoHeader: {
+        fontSize: 16,
+        color: '#55ffc7',
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    benefitsList: {
+        marginTop: 10,
+        marginBottom: 20,
+    },
+    bulletPoint: {
+        fontSize: 14,
+        color: '#FFF',
+        marginBottom: 5,
+    },
+
+    resultRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 8,
+        backgroundColor: '#1a1a1a',
+        borderRadius: 8,
+        marginBottom: 8,
+    },
+    text: {
+        color: '#ffffff',
+        fontSize: 12,
+        flex: 1,
+    },
+    profit: {
+        color: 'green',
+    },
+    loss: {
+        color: 'red',
+    },
+
+
+    card: {
+        backgroundColor: '#2C2C2C',
+        borderRadius: 8,
+        padding: 16,
+        marginVertical: 8,
+        shadowColor: '#fff',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    cardBody: {
+        flexDirection: 'column',
+    },
+    cardTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        color: '#00BA87'
+    },
+    row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 4,
+    },
+    label: {
+        fontWeight: 'bold',
+        flex: 1,
+        color: '#fff',
+    },
+    value: {
+        flex: 1,
+        textAlign: 'right',
+        color: '#fff',
+    },
 })
 
 export default TradeBasic;

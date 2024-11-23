@@ -1,7 +1,7 @@
 import React from "react";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from "../screens/home";
-import WalletScreen from "../screens/wallet";
+// import WalletScreen from "../screens/wallet";
 // import tradeBasic from "../screens/tradeBasic";
 // import markets from "../screens/markets";
 import CustomTabBar from './CustomTabBar';
@@ -28,10 +28,10 @@ const BottomNavigation = () => {
           component={Home}
         />
         <Tab.Screen
-          name="Wallet"
+          name="Credit"
           component={TradeBasic} 
           options={{
-            title: 'Loan',
+            title: 'Credit',
           }}
         
         />

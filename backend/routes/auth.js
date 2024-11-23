@@ -62,25 +62,42 @@ router.post('/register', validateUserRegistration, handleValidationErrors, async
 });
 
 
+// Claim Credit
+router.post('/claim-credit', verifyToken, async (req, res) => {
+  try {
+    // req.user will contain the decoded token data (e.g., userId)
+    const userId = req.user.userId;
+
+    // Fetch user data from the database using the userId from the token
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    user.isClaimed = 1;
+    user.save();
+
+    res.status(200).json({
+      status: true,
+      message: 'Claimed successfully'
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  console.log("Login request received");
+  const { walletAddress } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ walletAddress });
     if (!user) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ error: 'Invalid credentials' });
-    }
-
     const tokenData = generateToken(user);
-
     res.status(200).json({
       token: tokenData.token,
       expiresIn: tokenData.expiresIn,
@@ -112,7 +129,8 @@ router.get('/me', verifyToken, async (req, res) => {
       email: user.email,
       invite_code: user.invite_code,
       ref_code: user.ref_code,
-      wallet: user.address
+      wallet: user.address,
+      isClaimed: user.isClaimed
     });
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
