@@ -126,7 +126,6 @@ router.get('/me', verifyToken, async (req, res) => {
 
     // Fetch user data from the database using the userId from the token
     const user = await User.findById(userId);
-    console.log(user);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });

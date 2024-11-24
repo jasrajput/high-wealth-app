@@ -47,5 +47,4 @@ const useFetchCoinData = (coinIds = [], currency = 'usd', balance) => {
     return { coinData, loading, error };
 };
 
-
 export default useFetchCoinData;

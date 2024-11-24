@@ -13,13 +13,15 @@ import RBSheet from 'react-native-raw-bottom-sheet';
 
 const ScanSheet = forwardRef(({ onScanSuccess }, ref) => {
   const { colors } = useTheme();
-  const navigation = useNavigation();
   const [cameraPermission, setCameraPermission] = useState(false);
 
   const sheetRef = React.useRef();
 
   useImperativeHandle(ref, () => ({
-    open: () => sheetRef.current.open(),
+    open: () => {
+      sheetRef.current.open(); 
+      requestCameraPermission();
+    },
     close: () => sheetRef.current.close(),
   }));
 
@@ -27,22 +29,13 @@ const ScanSheet = forwardRef(({ onScanSuccess }, ref) => {
   const requestCameraPermission = async () => {
     try {
       if (Platform.OS === 'android') {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA,
-          {
-            title: 'Camera Permission',
-            message: 'This app needs camera access to scan QR codes.',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          }
-        );
+        
+        const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
 
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Camera permission granted');
           setCameraPermission(true);
         } else {
-          console.log('Camera permission denied');
+          sheetRef.current.close();
         }
       } else {
         // For iOS, permissions are handled automatically, you can use react-native-camera directly
@@ -52,11 +45,6 @@ const ScanSheet = forwardRef(({ onScanSuccess }, ref) => {
       console.warn(err);
     }
   };
-
-  useEffect(() => {
-    requestCameraPermission();
-  }, []);
-
 
   const onSuccess = (e) => {
     const scannedData = e.data;
