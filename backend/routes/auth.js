@@ -1,11 +1,12 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Bank = require('../models/Bank');
-const { generateUniqueCode, validateRefCode } = require('../helpers/user');
+const { generateUniqueCode, validateRefCode, insertLevels } = require('../helpers/user');
 const { validateUserRegistration, validateBankDetails, handleValidationErrors } = require('../middlewares/validation');
 const { generateToken, verifyToken } = require('../middlewares/authMiddleware');
 const FundTransaction = require('../models/FundTransaction');
+const Wallet = require('../models/Wallet');
+const Transaction = require('../models/Transaction');
 
 const router = express.Router();
 
@@ -43,6 +44,14 @@ router.post('/register', validateUserRegistration, handleValidationErrors, async
     user.invite_code = await generateUniqueCode();
     await user.save();
 
+    const wallet = new Wallet({
+      user: user._id
+    })
+
+    await wallet.save();
+
+    await insertLevels(referrer.invite_code, user._id);
+
     const tokenData = generateToken(user);
 
     res.json({
@@ -57,7 +66,6 @@ router.post('/register', validateUserRegistration, handleValidationErrors, async
         error: error.message
       });
     }
-
   }
 });
 
@@ -86,6 +94,7 @@ router.post('/claim-credit', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 // Login
 router.post('/login', async (req, res) => {
@@ -117,9 +126,19 @@ router.get('/me', verifyToken, async (req, res) => {
 
     // Fetch user data from the database using the userId from the token
     const user = await User.findById(userId);
+    console.log(user);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
+    }
+
+    const wallet = await Wallet.findOne({ user: user._id });
+    if (wallet) {
+      wallet = {
+        bot_com: wallet.bot_com,
+        level_com: wallet.level_com,
+        withdraw_wallet: wallet.withdraw_wallet,
+      }
     }
 
     // Return user data (excluding sensitive information)
@@ -130,12 +149,44 @@ router.get('/me', verifyToken, async (req, res) => {
       invite_code: user.invite_code,
       ref_code: user.ref_code,
       wallet: user.address,
-      isClaimed: user.isClaimed
+      isClaimed: user.isClaimed,
+      wallet
+
     });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: error.message });
   }
 });
+
+
+// Bonus Details
+router.get('/bonus-history', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Fetch transaction history for the user
+    const transactions = await Transaction.find({ user_id: userId }).sort({ createdAt: -1 });
+
+    // Return transaction history
+    res.status(200).json({
+      userId,
+      bonus_history: transactions.map(tx => ({
+        credit: tx.credit,
+        debit: tx.debit,
+        description: tx.description,
+        direction: tx.direction,
+        date: tx.createdAt,
+        from_id: tx.from_id,
+        level: tx.level
+      })),
+    });
+  } catch (error) {
+    console.error('Error fetching bonus history:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 
 // Transfer P2p
 router.post('/transfer', verifyToken, async (req, res) => {

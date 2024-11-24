@@ -10,7 +10,7 @@ import { GlobalStyleSheet } from '../../constants/styleSheet';
 import CustomButton from '../customButton';
 
 
-const AccountModal = () => {
+const AccountModal = ({accountId}) => {
 
     const {colors} = useTheme();
 
@@ -33,10 +33,10 @@ const AccountModal = () => {
                             marginBottom:10,
                         }]}
                         placeholderTextColor={colors.text}
-                        value="123456626388"
+                        value={accountId}
                     />  
                 </View>
-                <CustomButton title='Copy'/>
+                {/* <CustomButton title='Copy'/> */}
 
             </View>
             

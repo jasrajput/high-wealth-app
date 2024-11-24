@@ -13,7 +13,7 @@ import CustomButton from '../customButton';
 import EmailOTP from './emailOtp';
 import LinearGradient from 'react-native-linear-gradient';
 
-const NewEmailModal = () => {
+const NewEmailModal = ({email}) => {
 
     const {colors} = useTheme();
     const theme = useTheme();
@@ -80,7 +80,7 @@ const NewEmailModal = () => {
                                 backgroundColor:colors.card
                             }]}
                             placeholderTextColor={colors.text}
-                            value="abc@gmail.com"
+                            value={email}
                         />  
                     </View>
                 </View>

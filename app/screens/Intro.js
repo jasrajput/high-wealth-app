@@ -5,12 +5,16 @@ import {
   Text,
   StyleSheet,
   Image,
-  ActivityIndicator
+  ActivityIndicator,
+  BackHandler
 } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import { INTRO } from '../constants/theme';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Snackbar from 'react-native-snackbar';
+import ReactNativeBiometrics, { BiometryTypes } from 'react-native-biometrics'
+
 
 const slides = [
   {
@@ -39,17 +43,72 @@ const Intro = () => {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
+
+  const checkBiometricStatus = async () => {
+    const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+
+    if (biometricEnabled === 'true') {
+      const authSuccess = await handleBiometricAuth();
+
+      if (!authSuccess) {
+        Snackbar.show({
+          text: 'Biometric authentication failed. Please try again.',
+          backgroundColor: '#F44336',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+
+        setTimeout(() => {
+          BackHandler.exitApp();
+        }, 500);
+      }
+    }
+  };
+
+  useEffect(() => {
+    checkBiometricStatus();
+  }, []);
+
+
+
+  const handleBiometricAuth = async () => {
+    try {
+      const rnBiometrics = new ReactNativeBiometrics();
+      const { success } = await rnBiometrics.simplePrompt({ promptMessage: 'Authenticate to continue' });
+
+      if (success) {
+        return true;
+      } else {
+        Snackbar.show({
+          text: 'Authentication failed. Please try again.',
+          backgroundColor: '#F44336',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('[handleBiometricAuth] Error:', error);
+      Snackbar.show({
+        text: 'An error occurred during authentication.',
+        backgroundColor: '#F44336',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      return false;
+    }
+  };
+
+
+
   useEffect(() => {
     const hasVisitBefore = async () => {
       const firstPhase = await AsyncStorage.getItem('firstPhase');
       const secondPhase = await AsyncStorage.getItem('secondPhase');
       const thirdPhase = await AsyncStorage.getItem('thirdPhase');
       const fourthPhase = await AsyncStorage.getItem('fourthPhase');
-      
+      const token = await AsyncStorage.getItem('token');
       if (firstPhase) {
         if (secondPhase) {
           if (thirdPhase) {
-            if(fourthPhase) {
+            if (fourthPhase || token) {
               navigation.replace("drawernavigation");
             } else {
               navigation.replace("signup");
@@ -61,11 +120,9 @@ const Intro = () => {
           navigation.replace("welcome");
         }
       }
-
-
       setLoading(false);
-
     }
+
     hasVisitBefore();
   }, [])
 

@@ -56,24 +56,24 @@ const SignIn = ({ navigation }) => {
         setLoading(true);
 
         try {
-            const response = await API.userRegister({
-                name: form.fullName,
-                email: form.email,
-                ref_code: form.ref_code || undefined,
-                walletAddress: walletAddress
-            });
+            // const response = await API.userRegister({
+            //     name: form.fullName,
+            //     email: form.email,
+            //     ref_code: form.ref_code || undefined,
+            //     walletAddress: walletAddress
+            // });
 
             await AsyncStorage.setItem('fourthPhase', 'done');
 
-            if (response.token) {
+            // if (response.token) {
                 navigation.replace('drawernavigation');
-            } else {
-                if (response && response.errors && response.errors.length > 0) {
-                    return ToastAndroid.show(response?.errors[0]?.msg || 'Something went wrong.', ToastAndroid.SHORT);
-                } else {
-                    return ToastAndroid.show(response.error, ToastAndroid.SHORT);
-                }
-            }
+            // } else {
+            //     if (response && response.errors && response.errors.length > 0) {
+            //         return ToastAndroid.show(response?.errors[0]?.msg || 'Something went wrong.', ToastAndroid.SHORT);
+            //     } else {
+            //         return ToastAndroid.show(response.error, ToastAndroid.SHORT);
+            //     }
+            // }
 
 
         } catch (error) {
