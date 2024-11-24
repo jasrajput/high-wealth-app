@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ripple from 'react-native-material-ripple';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-const BalanceChart = ({ headerTitle, header, onSend, onReceive, balance, balanceUSD }) => {
+const BalanceChart = ({ headerTitle, header, onSend, onReceive, balance, balanceUSD, tokenImage, currency = '' }) => {
     const navigation = useNavigation();
 
     return (
@@ -88,17 +88,24 @@ const BalanceChart = ({ headerTitle, header, onSend, onReceive, balance, balance
                     </TouchableOpacity>
                 </View>
             }
+
+
+            {
+                tokenImage && <Image style={{ height: 40, width: 40, marginBottom: 20 }} source={{ uri: tokenImage }} />
+            }
+
+
             <Text
                 style={{
                     ...FONTS.fontXs,
                     color: 'rgba(255,255,255,.6)',
                     marginBottom: 8,
                 }}>Total Balance</Text>
-            <Text style={{ ...FONTS.h2, color: COLORS.white }}>{balance ?? '0.00'}</Text>
+            <Text style={{ ...FONTS.h2, color: COLORS.white }}>{`${balance} ${currency}`}</Text>
             {
                 balanceUSD && <Text style={{ ...FONTS.h6, color: COLORS.white }}>{balanceUSD}</Text>
             }
-            
+
             <View
                 style={{
                     flexDirection: 'row',
@@ -106,7 +113,6 @@ const BalanceChart = ({ headerTitle, header, onSend, onReceive, balance, balance
                     marginTop: 8,
                 }}
             >
-
 
                 <Ripple
                     style={{

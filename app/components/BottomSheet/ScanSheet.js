@@ -85,7 +85,7 @@ const ScanSheet = forwardRef(({ onScanSuccess }, ref) => {
           cameraStyle={styles.camera}
         />
       ) : (
-        <Text style={styles.permissionText}>Camera permission is required to scan QR codes.</Text>
+        ''
       )}
 
       <View style={styles.overlay}>

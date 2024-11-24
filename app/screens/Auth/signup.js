@@ -88,7 +88,6 @@ const SignIn = ({ navigation }) => {
 
         const fetchDetails = async () => {
             const token = await AsyncStorage.getItem('token');
-            console.log(token);
             if (!token) {
                 const walletAddress = await getAddressFromSeed();
                 const response = await API.userLogin({ walletAddress });
@@ -102,6 +101,7 @@ const SignIn = ({ navigation }) => {
         }
 
         fetchDetails();
+        setLoading(false);
     }, [])
 
 

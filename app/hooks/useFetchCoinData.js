@@ -10,7 +10,6 @@ const useFetchCoinData = (coinIds = [], currency = 'usd', balance) => {
 
     useEffect(() => {
         const fetchCoinData = async () => {
-            setLoading(true);
             setError(null);
 
             try {
@@ -33,11 +32,11 @@ const useFetchCoinData = (coinIds = [], currency = 'usd', balance) => {
                     usdValue: balance[coin.id] * coin.current_price
                 }));
 
+                setLoading(false);
                 setCoinData(adaptedData);
-                setLoading(false);
             } catch (err) {
-                setError(err.message || 'Failed to fetch data');
                 setLoading(false);
+                setError(err.message || 'Failed to fetch data');
             }
         };
 

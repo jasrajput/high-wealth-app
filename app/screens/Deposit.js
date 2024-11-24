@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
 import axios from 'axios';
 import HeaderBar from '../layout/header';
 import BalanceChart from '../components/totalBalanceChart';
@@ -12,6 +12,9 @@ import { getAddressFromSeed } from '../helpers/wallet';
 import ScanSheet from '../components/BottomSheet/ScanSheet';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import TransferSheet from '../components/BottomSheet/TransferSheet';
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+
+
 
 const Deposit = ({ route }) => {
   const { tokenId } = route.params;
@@ -22,6 +25,7 @@ const Deposit = ({ route }) => {
   const [amount, setAmount] = useState(0);
   const [balanceUsdValue, setBalanceUsdValue] = useState(0);
   const [transactions, setTransactions] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const refRBSheet = useRef();
@@ -44,22 +48,22 @@ const Deposit = ({ route }) => {
     return 'Unknown';
   };
 
-  
+
   const formatDate = (timestamp) => {
     const transactionDate = new Date(timestamp * 1000); // Convert from Unix timestamp
     const now = new Date();
-    
+
     const diffTime = now - transactionDate; // Difference in milliseconds
     const diffDays = Math.floor(diffTime / (1000 * 3600 * 24)); // Difference in days
-  
+
     if (diffDays === 1) {
       return 'Yesterday';
     }
-    
+
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return transactionDate.toLocaleDateString('en-US', options); // Format date (e.g., Sep 24, 2024)
+    return transactionDate.toLocaleDateString('en-US', options);
   };
-  
+
   const truncateAddress = (address) => {
     if (!address) return '';
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -90,7 +94,6 @@ const Deposit = ({ route }) => {
   }
 
   useEffect(() => {
-    // Fetch wallet address and transactions
     const fetchData = async () => {
       const address = await getAddressFromSeed();
       setWalletAddress(address);
@@ -98,6 +101,7 @@ const Deposit = ({ route }) => {
       if (address) {
         try {
           const txs = await fetchTransactions(address);
+          // console.log(txs);
           setTransactions(txs);
           setLoading(false);
         } catch (err) {
@@ -110,8 +114,8 @@ const Deposit = ({ route }) => {
       }
     };
 
-    fetchData();  // Call to fetch wallet address and transactions
-  }, [tokenId]); // Only runs when tokenId changes
+    fetchData();
+  }, [address, tokenId]);
 
   const getBalance = async (wallAddress) => {
     const url = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
@@ -149,6 +153,7 @@ const Deposit = ({ route }) => {
         const bal = await getBalance(walletAddress);
 
         setBalance(bal);
+        setCategories(response.data.categories);
         setBalanceUsdValue(bal * response.data.market_data.current_price.usd);
         setPriceChange(priceChange);
         setTokenData(response.data);
@@ -180,7 +185,7 @@ const Deposit = ({ route }) => {
     <View style={styles.container}>
 
       <HeaderBar title={String(tokenData.name).toUpperCase() + `(${String(tokenData.symbol).toUpperCase()})`} leftIcon={'back'} />
-      <BalanceChart balance={balance} balanceUSD={`$${parseFloat(balanceUsdValue).toFixed(2)}`} onSend={() => refRBSheet2.current.open()} onReceive={() => refRBSheet.current.open()} headerTitle={String(tokenData.name).toUpperCase()} header={false} />
+      <BalanceChart currency={String(tokenData.symbol).toUpperCase()} tokenImage={tokenData?.image?.small} balance={balance} balanceUSD={`$${parseFloat(balanceUsdValue).toFixed(2)}`} onSend={() => refRBSheet2.current.open()} onReceive={() => refRBSheet.current.open()} headerTitle={String(tokenData.name).toUpperCase()} header={false} />
 
       <Text style={styles.header}>Transactions List</Text>
       {transactions.length > 0 ? (
@@ -212,9 +217,9 @@ const Deposit = ({ route }) => {
                 <View style={styles.txDetails}>
                   <Text style={styles.txType}>{transactionType}</Text>
                   <Text style={styles.txAddress}>
-                  {transactionType === 'Send'
-                  ? `To: ${truncateAddress(tx.to)}`
-                  : `From: ${truncateAddress(tx.from)}`}
+                    {transactionType === 'Send'
+                      ? `To: ${truncateAddress(tx.to)}`
+                      : `From: ${truncateAddress(tx.from)}`}
 
                   </Text>
                 </View>
@@ -231,6 +236,8 @@ const Deposit = ({ route }) => {
       )}
 
 
+
+
       {/* Send */}
       <SenderSheet onTransfer={handleTransfer} scan={() => scanSheetRef.current.open()} address={address} currency={String(tokenData.symbol).toUpperCase()} refRBSheet={refRBSheet2} />
 
@@ -241,7 +248,7 @@ const Deposit = ({ route }) => {
       <ScanSheet ref={scanSheetRef} onScanSuccess={handleScannedData} />
 
       {/* Transfer */}
-      <TransferSheet fromAddress={walletAddress} toAddress={address} amount={amount} refTransfer={transferSheetRef} currency={String(tokenData.symbol).toUpperCase()}  />
+      <TransferSheet fromAddress={walletAddress} toAddress={address} amount={amount} refTransfer={transferSheetRef} currency={String(tokenData.symbol).toUpperCase()} />
 
       <View style={styles.footer}>
         <Text style={styles.tokenName}>Current {String(tokenData.symbol).toUpperCase()} Price</Text>
@@ -252,6 +259,42 @@ const Deposit = ({ route }) => {
           </Text>
         </View>
       </View>
+
+      {
+        categories.length >= 1 && (
+          <View style={styles.keywordsView}>
+            <Text style={{ paddingHorizontal: 15, color: 'black', fontWeight: 'bold', fontSize: 16 }}>
+                Keywords
+                <Text>{' '}</Text>
+              <FontAwesome name="chevron-right" size={16} color="black" />            
+            </Text>
+            <ScrollView
+              contentContainerStyle={[styles.footerKeywords, { flexDirection: 'row' }]}
+              horizontal={true}
+              showsHorizontalScrollIndicator={true}
+            >
+              {categories.map((category, index) => (
+                <Text
+                  key={index}
+                  style={{
+                    backgroundColor: COLORS.darkBackground,
+                    color: '#fff',
+                    padding: 9,
+                    margin: 10,
+                    borderRadius: 5,
+                  }}
+                >
+                  {category}
+                </Text>
+              ))}
+            </ScrollView>
+          </View>
+        )
+      }
+
+
+
+
     </View>
   );
 };
@@ -260,6 +303,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f9f9f9',
+  },
+
+  keywordsView: {
+    flex: 1,
+    position: 'absolute',
+    bottom: 35,
+    paddingVertical: 15,
+    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
   },
 
   footer: {
