@@ -72,6 +72,7 @@
     "stream-browserify": "^3.0.0",
     "text-encoding": "^0.7.0",
     "toggle-switch-react-native": "^3.3.0",
+    "tronweb": "^3.2.4",
     "victory-native": "^36.6.8"
   },
   "devDependencies": {

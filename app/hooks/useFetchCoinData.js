@@ -3,7 +3,6 @@ import axios from 'axios';
 
 const useFetchCoinData = (coinIds = [], currency = 'usd', balance) => {
 
-    console.log(balance);
     const [coinData, setCoinData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

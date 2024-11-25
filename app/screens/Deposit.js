@@ -14,8 +14,6 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import TransferSheet from '../components/BottomSheet/TransferSheet';
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 
-
-
 const Deposit = ({ route }) => {
   const { tokenId } = route.params;
   const [address, setAddress] = useState(''); // State to hold the sender address
@@ -60,6 +58,8 @@ const Deposit = ({ route }) => {
       return 'Yesterday';
     }
 
+
+
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return transactionDate.toLocaleDateString('en-US', options);
   };
@@ -95,22 +95,26 @@ const Deposit = ({ route }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const address = await getAddressFromSeed();
-      setWalletAddress(address);
+      try {
+        const address = await getAddressFromSeed();
+        setWalletAddress(address);
 
-      if (address) {
-        try {
-          const txs = await fetchTransactions(address);
-          // console.log(txs);
-          setTransactions(txs);
-          setLoading(false);
-        } catch (err) {
-          setError('Failed to fetch transactions');
+        if (address) {
+          try {
+            const txs = await fetchTransactions(address);
+            // console.log(txs);
+            setTransactions(txs);
+            setLoading(false);
+          } catch (err) {
+            setError('Failed to fetch transactions');
+            setLoading(false);
+          }
+        } else {
+          setError('Unable to derive address');
           setLoading(false);
         }
-      } else {
-        setError('Unable to derive address');
-        setLoading(false);
+      } catch (er) {
+        console.log(er.message);
       }
     };
 
@@ -264,9 +268,9 @@ const Deposit = ({ route }) => {
         categories.length >= 1 && (
           <View style={styles.keywordsView}>
             <Text style={{ paddingHorizontal: 15, color: 'black', fontWeight: 'bold', fontSize: 16 }}>
-                Keywords
-                <Text>{' '}</Text>
-              <FontAwesome name="chevron-right" size={16} color="black" />            
+              Keywords
+              <Text>{' '}</Text>
+              <FontAwesome name="chevron-right" size={16} color="black" />
             </Text>
             <ScrollView
               contentContainerStyle={[styles.footerKeywords, { flexDirection: 'row' }]}

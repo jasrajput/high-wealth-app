@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default class API {
-    static baseUrl = "http://192.168.1.6:6000/api/";
+    static baseUrl = "http://192.168.1.3:6000/api/";
     
     auth_token = "";
 
