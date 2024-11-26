@@ -38,16 +38,16 @@ const Profile = ({navigation}) => {
             title : "Settings",
             navigate : "settings",
         },
-        {
-            icon : ICONS.history,
-            title : "History",
-            navigate : "history",
-        },
-        {
-            icon : ICONS.badge,
-            title : "Rewards",
-            navigate : "rewards",
-        },
+        // {
+        //     icon : ICONS.history,
+        //     title : "History",
+        //     navigate : "history",
+        // },
+        // {
+        //     icon : ICONS.badge,
+        //     title : "Rewards",
+        //     navigate : "rewards",
+        // },
         // {
         //     icon : ICONS.wallet,
         //     title : "Payment",
@@ -118,7 +118,7 @@ const Profile = ({navigation}) => {
                             </TouchableOpacity>
                         </View>
                         <View>
-                            <Text style={{...FONTS.h6,color:COLORS.white,marginBottom:7}}>Multi-chain wallet</Text>
+                            <Text style={{...FONTS.h6,color:COLORS.white,marginBottom:7, marginTop: 7}}>Multi-chain wallet</Text>
                         </View>
                     </ImageBackground>
                     <View

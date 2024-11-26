@@ -34,7 +34,8 @@ const WelcomeV3 = () => {
                 setPhraseWords(mnemonic.split(' '));
                 setLoading(false);
 
-                const wallet = ethers.Wallet.fromPhrase(mnemonic);
+                // const wallet = ethers.Wallet.fromPhrase(mnemonic);
+                const wallet = ethers.HDNodeWallet.fromPhrase(mnemonic)
                 console.log(wallet)
                 setWallet(wallet);
 

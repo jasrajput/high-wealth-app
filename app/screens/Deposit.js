@@ -13,6 +13,9 @@ import ScanSheet from '../components/BottomSheet/ScanSheet';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import TransferSheet from '../components/BottomSheet/TransferSheet';
 import FontAwesome from "react-native-vector-icons/FontAwesome";
+import tronWeb from 'tronweb';
+import * as solanaWeb3 from "@solana/web3.js";
+
 
 const Deposit = ({ route }) => {
   const { tokenId } = route.params;
@@ -32,19 +35,134 @@ const Deposit = ({ route }) => {
   const transferSheetRef = useRef();
   const [priceChange, setPriceChange] = useState(0);
 
+  const rpcUrls = [
+  {
+    name: 'binancecoin',
+    rpcUrl: 'https://bsc-dataseed.binance.org/',
+    decimals: 18, // Native token (BNB) uses 18 decimals
+  },
+  {
+    name: 'tether',
+    rpcUrl: 'https://bsc-dataseed.binance.org/',
+    decimals: 18, // Native token (USDT) uses 18 decimals
+  },
+  {
+    name: 'ethereum',
+    rpcUrl: 'https://eth.drpc.org',
+    decimals: 18, // Native token (ETH) uses 18 decimals
+  },
+  {
+    name: 'polygon',
+    rpcUrl: 'https://polygon.drpc.org',
+    decimals: 18, // Native token (MATIC) uses 18 decimals
+  },
+  {
+    name: 'solana',
+    rpcUrl: 'https://neon-proxy-mainnet.solana.p2p.org',
+    decimals: 9, // Native token (SOL) uses 9 decimals
+  },
+  {
+    name: 'dogecoin',
+    rpcUrl: 'https://rpc-us.dogechain.dog',
+    decimals: 8, // Native token (DOGE) uses 8 decimals
+  },
+  {
+    name: 'tron',
+    rpcUrl: 'https://api.trongrid.io',
+    decimals: 6, // Native token (TRX) uses 6 decimals
+  },
+];
 
-  const categorizeTransaction = (tx, walletAddress) => {
-    if (tx.from.toLowerCase() === walletAddress.toLowerCase()) {
-      return 'Send';
+
+const categorizeTransaction = (tx, walletAddress, tokenName) => {
+  switch (tokenName) {
+    case 'ethereum':
+    case 'binance':
+    case 'polygon': {
+      // Ethereum-compatible chains (BSC, Polygon, etc.)
+      if (tx.from.toLowerCase() === walletAddress.toLowerCase()) {
+        return 'Send';
+      }
+      if (tx.to.toLowerCase() === walletAddress.toLowerCase()) {
+        return 'Receive';
+      }
+      if (tx.input !== "0x" || tx.contractAddress !== "") {
+        return 'Smart Contract Call';
+      }
+      return 'Unknown';
     }
-    if (tx.to.toLowerCase() === walletAddress.toLowerCase()) {
-      return 'Receive';
+    
+    case 'tron': {
+      // Tron blockchain based on the provided output
+      const { raw_data, ret, txID } = tx;
+
+      // Check if the transaction is a 'Send' or 'Receive'
+      if (raw_data.contract && raw_data.contract.length > 0) {
+        const contract = raw_data.contract[0];
+        const { owner_address, to_address } = contract.parameter.value;
+
+        // Check for "Send" transaction
+        if (owner_address && owner_address.toLowerCase() === walletAddress.toLowerCase()) {
+          return 'Send';
+        }
+
+        // Check for "Receive" transaction
+        if (to_address && to_address.toLowerCase() === walletAddress.toLowerCase()) {
+          return 'Receive';
+        }
+
+        // Check if the transaction is a smart contract call
+        if (contract.type === "TriggerSmartContract") {
+          return 'Smart Contract Call';
+        }
+      }
+
+      return 'Unknown'; // Default if not identified
     }
-    if (tx.input !== "0x" || tx.contractAddress !== "") {
-      return 'Smart Contract Call';
+
+    case 'bitcoin':
+    case 'dogecoin': {
+      // Bitcoin and Dogecoin transactions
+      if (tx.inputs && tx.inputs.some(input => input.address === walletAddress)) {
+        return 'Send';
+      }
+      if (tx.outputs && tx.outputs.some(output => output.address === walletAddress)) {
+        return 'Receive';
+      }
+      return 'Unknown';
     }
-    return 'Unknown';
-  };
+
+    case 'solana': {
+      // Solana blockchain
+      if (tx.from.toLowerCase() === walletAddress.toLowerCase()) {
+        return 'Send';
+      }
+      if (tx.to.toLowerCase() === walletAddress.toLowerCase()) {
+        return 'Receive';
+      }
+      if (tx.type === 'smart_contract') {
+        return 'Smart Contract Call';
+      }
+      return 'Unknown';
+    }
+
+    case 'xrp': {
+      // XRP blockchain
+      if (tx.Account.toLowerCase() === walletAddress.toLowerCase()) {
+        return 'Send';
+      }
+      if (tx.Destination.toLowerCase() === walletAddress.toLowerCase()) {
+        return 'Receive';
+      }
+      return 'Unknown';
+    }
+
+    // Add more cases for other blockchains as needed
+
+    default:
+      return 'Unknown';
+  }
+};
 
 
   const formatDate = (timestamp) => {
@@ -69,19 +187,97 @@ const Deposit = ({ route }) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
-  const fetchTransactions = async (address) => {
+  const fetchTransactions = async (address, chain) => {
     try {
-      const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
-      const url = `https://api-testnet.bscscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
+      switch (chain) {
+        case 'binancecoin': {
+          const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
+          const url = `https://api-testnet.bscscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          return data.result || [];
+        }
 
-      const response = await fetch(url);
-      const data = await response.json();
-      return data.result;
-    } catch (er) {
-      setError(er.message);
+        case 'tether': {
+          const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
+          const url = `https://api-testnet.bscscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          return data.result || [];
+        }
+  
+        case 'ethereum': {
+          const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
+          const url = `https://api-testnet.etherscan.io/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          return data.result || [];
+        }
+  
+        case 'tron': {
+          const fetchTransactionsTron = async (address) => {
+            try {
+              const url = `https://api.shasta.trongrid.io/v1/accounts/${address}/transactions`;
+              
+              const response = await fetch(url);
+              const data = await response.json();
+              
+              if (data && data.data) {
+                return data.data; // List of transactions
+              } else {
+                return [];
+              }
+            } catch (error) {
+              console.error('Tron Transactions Fetch Error:', error);
+              return [];
+            }
+          };
+
+          const transactions = await fetchTransactionsTron(address);
+          return transactions; // Returning the transactions data
+      
+        }
+  
+        case 'bitcoin': {
+          const url = `https://api.blockcypher.com/v1/btc/test3/addrs/${address}/full`; // BlockCypher Testnet API
+          const response = await fetch(url);
+          const data = await response.json();
+          return data.txs || [];
+        }
+  
+        case 'dogecoin': {
+          const url = `https://dogechain.info/api/v1/address/transactions/${address}`; // Dogechain API
+          const response = await fetch(url);
+          const data = await response.json();
+          return data.transactions || [];
+        }
+  
+        case 'solana': {
+          const url = `https://api.devnet.solana.com`; // Solana Devnet RPC
+          const body = JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'getConfirmedSignaturesForAddress2',
+            params: [address, { limit: 10 }],
+          });
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+          });
+          const data = await response.json();
+          return data.result || [];
+        }
+  
+        default:
+          return [];
+      }
+    } catch (error) {
+      console.error(`${chain} Transactions Fetch Error:`, error.message);
       return [];
     }
   };
+  
 
   const handleScannedData = (data) => {
     setAddress(data);
@@ -92,16 +288,156 @@ const Deposit = ({ route }) => {
     setAmount(amount);
     setAddress(senderAddress);
   }
+  
+
+
+  const fetchBalanceEVM = async (walletAddress, rpcUrl, decimals) => {
+    const body = JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'eth_getBalance',
+      params: [walletAddress, 'latest'],
+    });
+  
+    try {
+      const response = await fetch(rpcUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      });
+  
+      const data = await response.json();
+      const balance = data.result;
+      return balance ? parseInt(balance, 16) / Math.pow(10, decimals) : 0;
+    } catch (error) {
+      console.error(`EVM Balance Fetch Error:`, error);
+      return 0;
+    }
+  };
+  
+  const fetchBalanceBitcoin = async (walletAddress) => {
+    try {
+      const response = await fetch(`https://blockchain.info/q/addressbalance/${walletAddress}`);
+      const satoshis = await response.text();
+      return satoshis / 1e8; // Convert Satoshis to BTC
+    } catch (error) {
+      console.error(`Bitcoin Balance Fetch Error:`, error);
+      return 0;
+    }
+  };
+  
+  const fetchBalanceDogecoin = async (walletAddress) => {
+    try {
+      const response = await fetch(`https://dogechain.info/api/v1/address/balance/${walletAddress}`);
+      const { balance } = await response.json();
+      return parseFloat(balance);
+    } catch (error) {
+      console.error(`Dogecoin Balance Fetch Error:`, error);
+      return 0;
+    }
+  };
+  
+  const fetchBalanceSolana = async (walletAddress) => {
+    try {
+      const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl("mainnet-beta"));
+      const balance = await connection.getBalance(new solanaWeb3.PublicKey(walletAddress));
+      return balance / Math.pow(10, 9); // Convert Lamports to SOL
+    } catch (error) {
+      console.error(`Solana Balance Fetch Error:`, error);
+      return 0;
+    }
+  };
+  
+  const fetchBalanceTron = async (walletAddress) => {
+    try {
+      const tronInstance = new tronWeb({
+        fullHost: 'https://api.shasta.trongrid.io',
+      });
+      const balance = await tronInstance.trx.getBalance(walletAddress);
+      return balance / 1e6;
+    } catch (error) {
+      console.error(`Tron Balance Fetch Error:`, error);
+      return 0;
+    }
+  };
+
+
+  const fetchBalance = async (tokenName, walletAddress) => {
+    console.log("TOken: ", tokenName);
+    const rpcDetails = rpcUrls.find((chain) => chain.name === tokenName);
+
+    switch (tokenName.toLowerCase()) {
+      case "ethereum":
+        return fetchBalanceEVM(walletAddress, rpcDetails.rpcUrl, rpcDetails.decimals);
+  
+      case "binancecoin":
+        return fetchBalanceEVM(walletAddress, rpcDetails.rpcUrl, rpcDetails.decimals);
+      
+      case "tether":
+        return fetchBalanceEVM(walletAddress, rpcDetails.rpcUrl, rpcDetails.decimals);
+  
+      case "polygon":
+        return fetchBalanceEVM(walletAddress, rpcDetails.rpcUrl, rpcDetails.decimals);
+  
+      case "bitcoin":
+        return fetchBalanceBitcoin(walletAddress);
+  
+      case "dogecoin":
+        return fetchBalanceDogecoin(walletAddress);
+  
+      case "solana":
+        return fetchBalanceSolana(walletAddress);
+  
+      case "tron":
+        return fetchBalanceTron(walletAddress);
+  
+      default:
+        console.error(`Unsupported token: ${tokenName}`);
+        return 0;
+    }
+  };
+  
+
+  useEffect(() => {
+    // Fetch token details and balance after walletAddress is set
+    const fetchTokenDetails = async () => {
+
+      if (!walletAddress) return; // Ensure that walletAddress is available
+
+      try {
+        const response = await axios.get(`https://api.coingecko.com/api/v3/coins/${tokenId}`);
+        const priceChange = response.data.market_data.price_change_percentage_24h;
+        // const rpcDetails = rpcUrls.find((chain) => chain.name === tokenId);
+
+        const bal = await fetchBalance(tokenId, walletAddress);
+
+        setBalance(bal);
+        setCategories(response.data.categories);
+        setBalanceUsdValue(bal * response.data.market_data.current_price.usd);
+        setPriceChange(priceChange);
+        setTokenData(response.data);
+
+      } catch (ex) {
+        setError(ex.message);
+      }
+    };
+
+    if (walletAddress) {
+      fetchTokenDetails();  // Fetch token details after walletAddress is set
+    }
+  }, [walletAddress, tokenId]);  // Runs when walletAddress or tokenId changes
+
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const address = await getAddressFromSeed();
+        console.log("Name of the token: ", tokenId);
+        const address = await getAddressFromSeed(tokenId);
         setWalletAddress(address);
 
         if (address) {
           try {
-            const txs = await fetchTransactions(address);
+            const txs = await fetchTransactions(address, tokenId);
             // console.log(txs);
             setTransactions(txs);
             setLoading(false);
@@ -120,57 +456,6 @@ const Deposit = ({ route }) => {
 
     fetchData();
   }, [address, tokenId]);
-
-  const getBalance = async (wallAddress) => {
-    const url = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
-    const body = JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'eth_getBalance',
-      params: [wallAddress, 'latest'],
-    });
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body,
-      });
-
-      const data = await response.json();
-      const balance = data.result;
-      return parseInt(balance, 16) / Math.pow(10, 18);
-    } catch (error) {
-      return 0;
-    }
-  };
-
-  useEffect(() => {
-    // Fetch token details and balance after walletAddress is set
-    const fetchTokenDetails = async () => {
-
-      if (!walletAddress) return; // Ensure that walletAddress is available
-
-      try {
-        const response = await axios.get(`https://api.coingecko.com/api/v3/coins/${tokenId}`);
-        const priceChange = response.data.market_data.price_change_percentage_24h;
-        const bal = await getBalance(walletAddress);
-
-        setBalance(bal);
-        setCategories(response.data.categories);
-        setBalanceUsdValue(bal * response.data.market_data.current_price.usd);
-        setPriceChange(priceChange);
-        setTokenData(response.data);
-
-      } catch (ex) {
-        setError(ex.message);
-      }
-    };
-
-    if (walletAddress) {
-      fetchTokenDetails();  // Fetch token details after walletAddress is set
-    }
-  }, [walletAddress, tokenId]);  // Runs when walletAddress or tokenId changes
 
   if (!tokenData) {
     return <ActivityIndicator size="large" style={{ flex: 1 }} />;
@@ -194,7 +479,7 @@ const Deposit = ({ route }) => {
       <Text style={styles.header}>Transactions List</Text>
       {transactions.length > 0 ? (
         transactions.map((tx, index) => {
-          const transactionType = categorizeTransaction(tx, walletAddress);
+          const transactionType = categorizeTransaction(tx, walletAddress, tokenId);
           const formattedDate = formatDate(tx.timeStamp);
           const valueInBNB = parseInt(tx.value) / Math.pow(10, 18);
 
@@ -229,7 +514,7 @@ const Deposit = ({ route }) => {
                 </View>
 
                 <View style={styles.txValueContainer}>
-                  <Text style={styles.txValue}>{valueInBNB.toFixed(2)} BNB</Text>
+                  <Text style={styles.txValue}>{valueInBNB.toFixed(2)} {tokenData.symbol}</Text>
                 </View>
               </View>
             </View>

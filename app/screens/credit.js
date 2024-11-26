@@ -14,9 +14,10 @@ import { useTheme } from '@react-navigation/native';
 import axios from 'axios';
 import CustomButton from '../components/customButton';
 import API from './Components/API';
+import { COLORS, SIZES, ICONS } from '../constants/theme';
 
-const loanAmount = 1000;
-const TradeBasic = () => {
+const loanAmount = '9,000';
+const Credit = () => {
     const { colors } = useTheme();
     const [loading, setLoading] = useState(true);
     const [showConfetti, setShowConfetti] = useState(false);
@@ -197,7 +198,7 @@ const TradeBasic = () => {
             await fetchPriceFromOpenOcean(tokenPair);
         };
 
-        init();
+        // init();
     }, []);
 
     useEffect(() => {
@@ -245,67 +246,135 @@ const TradeBasic = () => {
     ));
 
 
-    const renderTransaction = ({ item }) => (
-        <TransactionItem item={item} />
-    );
-
     return (
         <>
             <ScrollView style={{ ...styles.container, backgroundColor: colors.background }}>
                 <HeaderBar leftIcon={'back'} title="Activate Credit" />
-                <View style={{ flex: 1, backgroundColor: '#1A1A1A', padding: 20 }}>
-                    <View
-                        style={{
-                            padding: 20,
-                            borderRadius: 10,
-                            marginBottom: 20,
-                            alignItems: 'center',
-                            backgroundColor: '#2C2C2C'
-                        }}
-                    >
+                <View style={{ flex: 1, backgroundColor: '#fff', padding: 20 }}>
+                    {showConfetti && (
+                        <>
+                            <LottieView
+                                source={require('../assets/json/confetti.json')}
+                                autoPlay
+                                loop={false}
+                                style={styles.lottie}
+                            />
+                            <Text style={styles.congratsText}>🎉 Congratulations! 🎉</Text>
+                            <Text style={styles.subText}>You have activated your credit</Text>
+                        </>
+                    )}
+                    <View>
                         {
                             hasClaimed ? (
-                                <>
-                                    {showConfetti && (
-                                        <>
-                                            <LottieView
-                                                source={require('../assets/json/confetti.json')}
-                                                autoPlay
-                                                loop={false}
-                                                style={styles.lottie}
-                                            />
-                                            <Text style={styles.congratsText}>🎉 Congratulations! 🎉</Text>
-                                            <Text style={styles.subText}>You have activated your credit</Text>
-                                        </>
-                                    )}
+                                <View style={{ flex: 1 }}>
+                                    <View style={styles.creditCard}>
+                                        <Text style={{ fontSize: 17, color: '#000', fontWeight: '900', marginBottom: 10 }}>
+                                            Credits Balance
+                                        </Text>
+                                        <Text style={{ fontSize: 15, color: '#000', marginTop: 5 }}>
+                                            Total Credits: {loanAmount}
+                                        </Text>
+                                        <Text style={{ fontSize: 15, color: '#000', marginTop: 5 }}>
+                                            Daily: {loanAmount}
+                                        </Text>
+                                        <Text style={{ fontSize: 15, color: '#000', marginTop: 25 }}>
+                                            Potential earmings: 0.3% to 0.5%
+                                        </Text>
+                                    </View>
 
-                                    <Text style={{ fontSize: 16, color: '#FFFFFF', marginBottom: 10 }}>
-                                        Credit Activated!
-                                    </Text>
-                                    <Text style={{ fontSize: 36, color: '#55ffc7', fontWeight: 'bold' }}>
-                                        ${loanAmount}
-                                    </Text>
-                                    <Text style={{ fontSize: 14, color: '#AAAAAA', marginTop: 10, textAlign: 'center' }}>
-                                        You're now empowered with a credit of ${loanAmount}.This will be automatically invested and daily return of 0.3% will be given to your wallet.
-                                    </Text>
-                                </>
+                                    <View
+                                        style={{
+                                            padding: 20,
+                                            borderRadius: SIZES.radius,
+                                            marginBottom: 20,
+                                            backgroundColor: "#D3D3D3",
+                                        }}
+                                    >
+                                        <Text style={{ fontSize: 17, color: '#000', fontWeight: '900', marginBottom: 10 }}>
+                                            Bot Status
+                                        </Text>
+                                        <Text style={{ fontSize: 15, color: '#000', marginTop: 1 }}>
+                                            Searching for arbitrage opportunities...
+                                        </Text>
+
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 15 }}>
+                                            <Image
+                                                source={ICONS.wallet2}
+                                                style={{ height: 30, width: 30, marginRight: 10 }}
+                                            />
+                                            <View style={{ paddingHorizontal: 10 }}>
+                                                <Text style={{ fontSize: 15, color: '#000' }}>
+                                                    Active Searches: 5
+                                                </Text>
+                                                <Text style={{ fontSize: 15, color: '#000' }}>
+                                                    Potential Profit: 3.5%
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </View>
+
+
+                                    <View
+                                        style={{
+                                            padding: 20,
+                                            borderRadius: SIZES.radius,
+                                            marginBottom: 20,
+                                            backgroundColor: "#fff",
+                                            elevation: 4,
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 4
+                                        }}
+                                    >
+                                        <Text style={{ fontSize: 17, color: '#000', fontWeight: '900', marginBottom: 10 }}>
+                                            Investment Notification
+                                        </Text>
+                                        <View style={{ flexDirection: 'row', marginTop: 15, justifyContent: 'space-between' }}>
+                                            <View>
+                                                <Text style={{ fontSize: 15, color: '#000' }}>
+                                                    Arbitrage Found: Crypto/USD
+                                                </Text>
+                                            </View>
+
+                                            <Text style={{ fontSize: 15, color: COLORS.primary }}>
+                                                2 mins ago
+                                            </Text>
+                                        </View>
+
+                                        <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
+                                            <View>
+                                                <Text style={{ fontSize: 15, color: '#000' }}>
+                                                    Arbitrage Found: Gold/USD
+                                                </Text>
+                                            </View>
+
+                                            <Text style={{ fontSize: 15, color: COLORS.primary }}>
+                                                10 mins ago
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </View>
+
                             ) :
-                                <>
+                                <View style={styles.creditCard}>
                                     <Text style={styles.infoHeader}>Why Activate Your Credit?</Text>
                                     <View style={styles.benefitsList}>
-                                        <Text style={styles.bulletPoint}>✅ Earn a daily return of 0.3% automatically.</Text>
+                                        <Text style={styles.bulletPoint}>✅ Earn a daily return of 0.3% to 0.5% automatically.</Text>
                                         <Text style={styles.bulletPoint}>✅ Start growing your investments effortlessly.</Text>
                                         <Text style={styles.bulletPoint}>✅ Secure and automated process.</Text>
                                     </View>
 
 
                                     <View style={{ width: '100%' }}>
-                                        <CustomButton title="Approve Credit" onPress={handlePress} />
+                                        <CustomButton title="Activate" onPress={handlePress} />
                                     </View>
-                                </>
+                                </View>
                         }
 
                     </View>
+
+
 
                     {results.map((res) => (
                         <View style={styles.card} key={res.id}>
@@ -421,23 +490,23 @@ const styles = StyleSheet.create({
         position: 'absolute',
     },
     congratsText: {
-        fontSize: 24,
-        color: '#fff',
+        fontSize: 22,
+        color: '#000',
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 10,
+        marginBottom: 5,
     },
     subText: {
         fontSize: 16,
-        color: '#ddd',
+        color: '#000',
         textAlign: 'center',
         marginBottom: 20,
     },
 
     infoHeader: {
         fontSize: 16,
-        color: '#55ffc7',
-        fontWeight: 'bold',
+        color: '#000',
+        fontWeight: '800',
         marginBottom: 10,
     },
     benefitsList: {
@@ -446,7 +515,7 @@ const styles = StyleSheet.create({
     },
     bulletPoint: {
         fontSize: 14,
-        color: '#FFF',
+        color: '#000',
         marginBottom: 5,
     },
 
@@ -506,6 +575,13 @@ const styles = StyleSheet.create({
         textAlign: 'right',
         color: '#fff',
     },
+
+    creditCard: {
+        padding: 20,
+        borderRadius: SIZES.radius,
+        marginBottom: 20,
+        backgroundColor: COLORS.primaryLight
+    }
 })
 
-export default TradeBasic;
+export default Credit;

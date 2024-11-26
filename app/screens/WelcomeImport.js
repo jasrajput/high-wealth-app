@@ -40,7 +40,9 @@ const WelcomeImport = ({ route }) => {
 
     const validateRecoveryPhrase = (phrase) => {
         try {
-            const wallet = ethers.Wallet.fromPhrase(phrase);
+            // const wallet = ethers.Wallet.fromPhrase(phrase);
+            const wallet = ethers.HDNodeWallet.fromPhrase(phrase)
+            
             return wallet;
         } catch (error) {
             console.log(error);

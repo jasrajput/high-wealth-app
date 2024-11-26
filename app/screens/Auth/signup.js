@@ -28,6 +28,7 @@ const SignIn = ({ navigation }) => {
     const theme = useTheme();
     const { colors } = useTheme();
     const [isFocused, setisFocused] = useState(false);
+    const [walletAddresss, setWalletAddress] = useState('');
     const [isFocused2, setisFocused2] = useState(false);
     const [isFocused3, setisFocused3] = useState(false);
     const [isLoading, setLoading] = useState(true);
@@ -60,7 +61,7 @@ const SignIn = ({ navigation }) => {
                 name: form.fullName,
                 email: form.email,
                 ref_code: form.ref_code || undefined,
-                walletAddress: walletAddress
+                walletAddress: walletAddresss
             });
 
             await AsyncStorage.setItem('fourthPhase', 'done');
@@ -89,7 +90,9 @@ const SignIn = ({ navigation }) => {
         const fetchDetails = async () => {
             const token = await AsyncStorage.getItem('token');
             if (!token) {
-                const walletAddress = await getAddressFromSeed();
+                const walletAddress = await getAddressFromSeed("binance");
+                setWalletAddress(walletAddress);
+                console.log("wall signup: ",walletAddress);
                 const response = await API.userLogin({ walletAddress });
                 if (response.token) {
                     await AsyncStorage.setItem('token', response.token);

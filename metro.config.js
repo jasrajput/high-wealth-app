@@ -17,11 +17,13 @@ module.exports = {
     }),
   },
   resolver: {
-    extraNodeModules: require('node-libs-react-native')
+    // Include existing `extraNodeModules`
+    extraNodeModules: require('node-libs-react-native'),
 
-    // extraNodeModules: {
-    //   stream: require.resolve('stream-browserify'),
-    //   events: require.resolve('events'),  // Add this line
-    // },
+    // Add `.wasm` file support
+    assetExts: [
+      "wasm",
+      ...require("metro-config/src/defaults/defaults").assetExts,
+    ],
   },
 };

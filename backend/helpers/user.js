@@ -26,7 +26,7 @@ const insertLevels = async (sponsorId, userId) => {
     let parentId = sponsorId;
     let userLevel = 1;
 
-    while (parentId !== null && userLevel <= 50) {
+    while (parentId != 0 && userLevel <= 50) {
         const user = await User.findOne({ invite_code: parentId });
 
         if (!user) {

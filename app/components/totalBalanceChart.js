@@ -41,7 +41,7 @@ const BalanceChart = ({ headerTitle, header, onSend, onReceive, balance, balance
                         marginBottom: 5,
                     }}
                 >
-                    <Text style={{ ...FONTS.h6, color: COLORS.white, flex: 1 }}>{headerTitle ? headerTitle : "Home"}</Text>
+                    <Text style={{ ...FONTS.h6, color: COLORS.white, flex: 1 }}>{headerTitle ? headerTitle : "Wallet"}</Text>
                     <TouchableOpacity
                         onPress={() => navigation.navigate('notifications')}
                         style={{
@@ -73,7 +73,7 @@ const BalanceChart = ({ headerTitle, header, onSend, onReceive, balance, balance
                             }}
                         />
                     </TouchableOpacity>
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         onPress={() => navigation.navigate('scan')}
                         style={{
                             height: 40,
@@ -85,7 +85,7 @@ const BalanceChart = ({ headerTitle, header, onSend, onReceive, balance, balance
                         }}
                     >
                         <FontAwesome name="qrcode" size={20} color={COLORS.white} />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
             }
 

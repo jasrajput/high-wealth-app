@@ -50,7 +50,7 @@ router.post('/register', validateUserRegistration, handleValidationErrors, async
 
     await wallet.save();
 
-    await insertLevels(referrer.invite_code, user._id);
+    await insertLevels(user.ref_code, user._id);
 
     const tokenData = generateToken(user);
 

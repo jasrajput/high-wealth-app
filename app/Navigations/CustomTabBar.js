@@ -3,6 +3,8 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import DropShadow from 'react-native-drop-shadow';
 import { COLORS, FONTS, ICONS, SIZES } from '../constants/theme';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 
 const CustomTabBar = ({state,navigation,descriptors}) => {
     
@@ -59,7 +61,7 @@ const CustomTabBar = ({state,navigation,descriptors}) => {
                             }
 
                         }
-                        if(label == "Trade"){
+                        if(label == "Dashboard"){
                             return(
                                 <View style={[styles.tabItem,{paddingHorizontal:10}]} key={index}>
                                     <TouchableOpacity
@@ -75,13 +77,8 @@ const CustomTabBar = ({state,navigation,descriptors}) => {
                                             justifyContent:'center',
                                         }}
                                     >
-                                        <Image
-                                            source={ICONS.trade}
-                                            style={{
-                                                height:28,
-                                                width:28,
-                                            }}
-                                        />
+                                        <Icon name="home" size={28} color="#fff" />
+
                                     </TouchableOpacity>
                                 </View>
                             )
@@ -94,9 +91,9 @@ const CustomTabBar = ({state,navigation,descriptors}) => {
                                     >
                                         <Image
                                             source={
-                                                label === "Home" ? ICONS.home :
+                                                label === "Wallet" ? ICONS.wallet :
                                                 label === "Credit" ? ICONS.trade :
-                                                label === "Market" ? ICONS.colorswatch :
+                                                label === "Referrals" ? ICONS.customer :
                                                 label === "Profile" ? ICONS.profile : null
                                             }
                                             style={{

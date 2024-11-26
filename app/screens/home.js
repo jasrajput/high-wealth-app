@@ -25,7 +25,7 @@ const Home = () => {
     const navigation = useNavigation();
     const [balances, setBalances] = useState({});
     const refRBSheet = useRef();
-    const coinIds = ['bitcoin', 'ethereum', 'tether', 'ripple', 'binancecoin', 'dogecoin', 'solana', 'usd-coin', 'cardano', 'tron', 'sui'];
+    const coinIds = ['bitcoin', 'ethereum', 'tether', 'binancecoin', 'dogecoin', 'solana', 'tron', 'matic-network'];
 
     if (error) {
         return <Text style={{ color: 'red', textAlign: 'center', marginTop: 20 }}>{error}</Text>;
@@ -36,7 +36,7 @@ const Home = () => {
     }
 
     const getBalance = async () => {
-        const walletAddress = await getAddressFromSeed();
+        const walletAddress = await getAddressFromSeed("binance");
         console.log("walletAddress: ", walletAddress)
         const url = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
         const body = JSON.stringify({
