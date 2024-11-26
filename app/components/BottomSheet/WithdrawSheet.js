@@ -5,7 +5,7 @@ import { BoxShadow } from 'react-native-shadow';
 import { SvgXml } from 'react-native-svg';
 import { GlobalStyleSheet } from '../../Utils/styleSheet';
 import { COLORS, FONTS, ICONS, IMAGES, SIZES } from '../../Utils/theme';
-import CustomButton from '../CustomButton';
+import CustomButton from '../customButton';
 
 const CoinItem = [
     {

@@ -4,7 +4,6 @@ const Wallet = require('../models/Wallet');
 const Level = require('../models/Level');
 const Transaction = require('../models/Transaction');
 
-
 // Function to generate a unique invite code
 const generateUniqueCode = async () => {
     const codeLength = 10;
@@ -12,29 +11,28 @@ const generateUniqueCode = async () => {
 
     do {
         inviteCode = crypto.randomBytes(codeLength / 2).toString('hex').toUpperCase(); // Generate hex code
-    } while (await User.findOne({ invite_code: inviteCode })); // Check for uniqueness
+    } while (await User.findOne({ user_id: inviteCode })); // Check for uniqueness
 
     return inviteCode;
 };
 
 // Function to validate a ref_code
-const validateRefCode = async (ref_code) => {
-    return await User.findOne({ invite_code: ref_code });
+const validateRefCode = async (real_sponsor_id) => {
+    return await User.findOne({ user_id: real_sponsor_id });
 };
 
 const insertLevels = async (sponsorId, userId) => {
     let parentId = sponsorId;
     let userLevel = 1;
 
-    while (parentId != 0 && userLevel <= 50) {
-        const user = await User.findOne({ invite_code: parentId });
-
+    while (parentId != null && userLevel <= 50) {
+        const user = await User.findOne({ user_id: parentId });
         if (!user) {
             break;
         }
 
         const sponsorId = user._id;
-        const newSponsor = user.invite_code;
+        const newSponsor = user.real_sponsor_id;
 
         await Level.create({
             from_id: userId,
@@ -50,11 +48,11 @@ const insertLevels = async (sponsorId, userId) => {
 const distributionBotCommission = async () => {
     try {
         // Fetch all users
-        const users = await User.find({}); // Add filters if needed
+        const users = await User.find({});
 
         // Loop through each user
         for (const user of users) {
-            const roi = 1000 * 0.03;
+            const roi = 300 * 0.03;
 
             // Fetch user's wallet
             const userWallet = await Wallet.findOne({ user: user._id });
@@ -81,7 +79,7 @@ const distributionBotCommission = async () => {
             });
 
 
-            await distributeLevelIncome(user.ref_code, user._id, roi);
+            await distributeLevelIncome(user.real_sponsor_id, user.user_id, roi);
 
             console.log(`Processed ROI for user ${user._id}: $${roi}`);
         }
@@ -98,13 +96,13 @@ const distributeLevelIncome = async (sponsorId, userId, amount) => {
     const percentage = [25, 20, 15, 10, 8, 7, 6, 5, 3, 1];
 
     while (userLevel <= 10 && parentId !== null) {
-        const sponsor = await User.findOne({ invite_code: parentId });
+        const sponsor = await User.findOne({ user_id: parentId });
 
         if (!sponsor) {
             break;
         }
 
-        const { _id: realId, invite: commSponsorId } = sponsor;
+        const { _id: realId, real_sponsor_id: commSponsorId } = sponsor;
         const upComs = (amount * percentage[i]) / 100;
 
         if (upComs > 0.0) {

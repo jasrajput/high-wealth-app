@@ -113,18 +113,18 @@ const DATA = [
             // },
         ]
     },
-    {
-        title: "Theme",
-        data: [
-            {
-                icon: ICONS.moon,
-                title: 'Dark Mode',
-                desc: 'Select theme mode',
-                mode: 'toggle',
-                toggle: 'themeMode',
-            },
-        ]
-    },
+    // {
+    //     title: "Theme",
+    //     data: [
+    //         {
+    //             icon: ICONS.moon,
+    //             title: 'Dark Mode',
+    //             desc: 'Select theme mode',
+    //             mode: 'toggle',
+    //             toggle: 'themeMode',
+    //         },
+    //     ]
+    // },
 ];
 
 const Settings = () => {
@@ -209,7 +209,7 @@ const Settings = () => {
                     </LinearGradient>
                 }
                 {
-                    settingRBSheet === "account" ? <AccountModal accountId={userDetails?.invite_code} /> :
+                    settingRBSheet === "account" ? <AccountModal accountId={userDetails?.user_id} /> :
                         settingRBSheet === "new email" ? <NewEmailModal email={userDetails?.email} /> :
                             settingRBSheet === "change password" ? <ChangePassword /> :
                                 settingRBSheet === "contact" ? <ContactModal /> :

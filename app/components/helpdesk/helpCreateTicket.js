@@ -52,7 +52,7 @@ const HelpCreateTicket = () => {
                                 source={ICONS.support}
                             />
                         </View>
-                        <Text style={{...FONTS.h6,...FONTS.fontMedium,color:colors.title,marginBottom:5}}>Welcome to Crypto Money help desk</Text>
+                        <Text style={{...FONTS.h6,...FONTS.fontMedium,color:colors.title,marginBottom:5}}>Welcome to High Wealth help desk</Text>
                         <Text style={{...FONTS.font,color:colors.text}}>If you have any issue, open a ticket.</Text>
                     </View>
                     

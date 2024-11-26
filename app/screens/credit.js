@@ -11,33 +11,71 @@ import {
 import LottieView from 'lottie-react-native';
 import HeaderBar from '../layout/header';
 import { useTheme } from '@react-navigation/native';
-import axios from 'axios';
 import CustomButton from '../components/customButton';
 import API from './Components/API';
 import { COLORS, SIZES, ICONS } from '../constants/theme';
+import Snackbar from 'react-native-snackbar';
+
 
 const loanAmount = '9,000';
+
+const generateRandomProfit = () => {
+    return (Math.random() * (0.16 - 0.01) + 0.01).toFixed(2);
+};
+
+const generateRandomActiveSearches = () => {
+    return Math.floor(Math.random() * (30 - 3 + 1) + 3); // Random value between 3 and 50
+};
+
+
 const Credit = () => {
     const { colors } = useTheme();
     const [loading, setLoading] = useState(true);
+    const [userData, setUserData] = useState([]);
     const [showConfetti, setShowConfetti] = useState(false);
     const [hasClaimed, setClaimed] = useState(false);
     const [results, setResults] = useState([]);
     const animatedValue = useRef(new Animated.Value(0)).current;
+    const [activeSearches, setActiveSearches] = useState(generateRandomActiveSearches());
+    const [potentialProfit, setPotentialProfit] = useState(generateRandomProfit());
+
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setActiveSearches(generateRandomActiveSearches());
+            setPotentialProfit(generateRandomProfit());
+        }, 2000);
+
+        return () => clearInterval(interval);
+    }, []);
+
 
     const handlePress = async () => {
-        const response = await API.claim({});
-        if (response.status) {
-            setClaimed(true);
-            setShowConfetti(true);
-            setTimeout(() => setShowConfetti(false), 3000);
+        if (userData) {
+            if (userData.totalReferrals >= 3) {
+                const response = await API.claim({});
+                console.log(response);
+                if (response.status) {
+                    setClaimed(true);
+                    setShowConfetti(true);
+                    setTimeout(() => setShowConfetti(false), 3000);
+                }
+            } else {
+                return Snackbar.show({
+                    text: 'You need atleast 3 referrals to activate your credit.For more info please check referrals page',
+                    backgroundColor: COLORS.warning,
+                    duration: Snackbar.LENGTH_SHORT,
+                });
+
+            }
         }
     };
 
     useEffect(() => {
         const fetchUserDetails = async () => {
             const details = await API.getUserDetails();
-            if (details.isClaimed) {
+            setUserData(details);
+            if (details.isClaimed === 1) {
                 setClaimed(true);
             }
         }
@@ -220,6 +258,8 @@ const Credit = () => {
 
 
 
+
+
     const TransactionItem = memo(({ item }) => (
         <View style={styles.transactionItem}>
             <View style={styles.transactionLeft}>
@@ -304,10 +344,10 @@ const Credit = () => {
                                             />
                                             <View style={{ paddingHorizontal: 10 }}>
                                                 <Text style={{ fontSize: 15, color: '#000' }}>
-                                                    Active Searches: 5
+                                                    Active Searches: {activeSearches}
                                                 </Text>
                                                 <Text style={{ fontSize: 15, color: '#000' }}>
-                                                    Potential Profit: 3.5%
+                                                    Potential Profit: {potentialProfit}%
                                                 </Text>
                                             </View>
                                         </View>
@@ -330,8 +370,11 @@ const Credit = () => {
                                         <Text style={{ fontSize: 17, color: '#000', fontWeight: '900', marginBottom: 10 }}>
                                             Investment Notification
                                         </Text>
-                                        <View style={{ flexDirection: 'row', marginTop: 15, justifyContent: 'space-between' }}>
-                                            <View>
+                                        <View style={{ flexDirection: 'row', marginTop: 5, justifyContent: 'space-between' }}>
+                                            <Text style={{ fontSize: 15, color: '#000' }}>
+                                                Actively looking for arbitrage...
+                                            </Text>
+                                            {/* <View>
                                                 <Text style={{ fontSize: 15, color: '#000' }}>
                                                     Arbitrage Found: Crypto/USD
                                                 </Text>
@@ -339,10 +382,10 @@ const Credit = () => {
 
                                             <Text style={{ fontSize: 15, color: COLORS.primary }}>
                                                 2 mins ago
-                                            </Text>
+                                            </Text> */}
                                         </View>
 
-                                        <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
+                                        {/* <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
                                             <View>
                                                 <Text style={{ fontSize: 15, color: '#000' }}>
                                                     Arbitrage Found: Gold/USD
@@ -352,7 +395,7 @@ const Credit = () => {
                                             <Text style={{ fontSize: 15, color: COLORS.primary }}>
                                                 10 mins ago
                                             </Text>
-                                        </View>
+                                        </View> */}
                                     </View>
                                 </View>
 

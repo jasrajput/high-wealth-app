@@ -1,7 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default class API {
-    static baseUrl = "http://192.168.1.4:6000/api/";
+    // static baseUrl = "http://192.168.1.4:6000/api/";
+    static baseUrl = "http://35.154.32.35:6000/api/";
+    
     
     auth_token = "";
 
@@ -167,6 +169,12 @@ export default class API {
     static getFundHistory() {
         return this.makeAPICall("orders/order-history", null, 'GET', true);
     }
+
+    static getBonusHistory() {
+        return this.makeAPICall("auth/bonus-history", null, 'GET', true);
+    }
+
+    
 
     
 

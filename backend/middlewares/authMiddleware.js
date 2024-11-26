@@ -21,8 +21,8 @@ const verifyToken = (req, res, next) => {
 
 const generateToken = (user) => {
   const payload = { userId: user._id };
-  const expiresIn = 24 * 60 * 60; // 1 day
-  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1d' });
+  const expiresIn = 365 * 24 * 60 * 60; // 1 year
+  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1y' });
   
   return { token, expiresIn };
 };

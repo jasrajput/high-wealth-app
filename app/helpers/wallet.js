@@ -9,7 +9,7 @@ import { deriveKeypair, deriveAddress } from "ripple-keypairs";
 // Derivation paths for each blockchain
 const paths = {
   ethereum: "m/44'/60'/0'/0/0", // Ethereum path
-  binancecoin: "m/44'/60'/0'/0/0", // Same as Ethereum
+  binance: "m/44'/60'/0'/0/0", // Same as Ethereum
   polygon: "m/44'/60'/0'/0/0", // Same as Ethereum
   bitcoin: "m/44'/0'/0'/0/0", // Bitcoin path
   dogecoin: "m/44'/3'/0'/0/0", // Dogecoin path
@@ -85,12 +85,16 @@ const generateAddresses = async (mnemonic, tokenName) => {
       return solanaAddress;
 
     default: {
-      const evmChains = ["ethereum", "binance", "polygon", "tether"]; // Group similar cases
+      const evmChains = ["ethereum", "binancecoin", "matic-network", "tether"]; // Group similar cases
       if (evmChains.includes(tokenName)) {
+        if(paths[tokenName] === 'binancecoin') {
+          paths[tokenName] = 'binance';
+        } 
+
         return evmWalletAddress(mnemonic, paths[tokenName]);
       }
 
-      throw new Error(`Unsupported token: ${tokenName}`);
+      throw new Error(`Unsupported token here: ${tokenName}`);
     }
   }
 };
@@ -102,9 +106,9 @@ export const getAddressFromSeed = (tokenName) => {
       const credentials = await Keychain.getGenericPassword({ service: "recoveryData" });
       if (credentials) {
         const seedPhrase = credentials.password;
-
         try {
 
+          console.log(tokenName);
           const address = await generateAddresses(seedPhrase, tokenName);
           console.log(address);
           // console.log(data);
@@ -158,6 +162,7 @@ export const getAddressFromSeed = (tokenName) => {
           reject(error);
         }
       } else {
+        
         reject("No seed phrase found");
       }
     } catch (error) {

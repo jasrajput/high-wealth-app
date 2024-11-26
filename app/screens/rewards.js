@@ -21,6 +21,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useTheme } from '@react-navigation/native';
 import API from './Components/API';
 import Share from 'react-native-share';
+import Clipboard from '@react-native-clipboard/clipboard';
+import Snackbar from 'react-native-snackbar';
 
 
 const socialLink = [
@@ -28,8 +30,9 @@ const socialLink = [
     { icon: ICONS.whatsapp, platform: 'WhatsApp' },
     { icon: ICONS.instagram, platform: 'Instagram' },
     { icon: ICONS.twitter, platform: 'Twitter' },
-    { icon: ICONS.twitter, platform: 'Telegram' },
+    // { icon: ICONS.twitter, platform: 'Telegram' },
 ];
+
 
 const tableData = [
     {
@@ -73,12 +76,7 @@ const tableData = [
 
 
 const Rewards = () => {
-    const totalReferrals = 3;
-    const madeReferrals = 1; // This can be dynamic
-    const remainingReferrals = totalReferrals - madeReferrals;
-
     // Calculate the progress as a percentage
-    const progress = (madeReferrals / totalReferrals) * 100;
 
     const { colors } = useTheme();
     const [userDetails, setUserDetails] = useState([]);
@@ -90,10 +88,10 @@ const Rewards = () => {
             const details = await API.getUserDetails();
             console.log(details);
             if (details) {
-                const referralLink = `https://highwealth.com/signup?invite_code=${details.invite_code}`;
+                // const referralLink = `https://highwealth.com/signup?invite_code=${details.user_id}`;
 
                 setUserDetails(details);
-                setReferralLink(referralLink);
+                setReferralLink(details.user_id);
             }
         }
 
@@ -101,12 +99,26 @@ const Rewards = () => {
     }, []);
 
 
+    const requiredReferrals = 3;
+    const madeReferrals = userDetails?.totalReferrals || 0;
+    const remainingReferrals = requiredReferrals - madeReferrals;
+    const progress = (madeReferrals / requiredReferrals) * 100;
+
+
+    const copyToClipboard = () => {
+        Clipboard.setString(userDetails?.user_id);
+        Snackbar.show({
+            text: 'Copied',
+            backgroundColor: COLORS.success,
+            duration: Snackbar.LENGTH_SHORT,
+        });
+    };
 
     const shareReferralLink = async (platform) => {
         let message;
         try {
             if (platform === 'WhatsApp') {
-                message = `Hey! 🎉 Join me on this awesome app and use my referral code for rewards: ${referralLink}`;
+                message = `Hey! 🎉 Join me on this awesome app and use my referral code ${referralLink} for rewards`;
 
                 await Share.open({
                     title: 'Share via WhatsApp',
@@ -114,7 +126,7 @@ const Rewards = () => {
                     social: Share.Social.WHATSAPP,
                 });
             } else if (platform === 'Facebook') {
-                message = `Check out this amazing app! Use my referral code and get rewards: ${referralLink}`;
+                message = `Check out this amazing app! Use my referral code ${referralLink} and get rewards`;
 
                 await Share.open({
                     title: 'Share on Facebook',
@@ -122,7 +134,7 @@ const Rewards = () => {
                     social: Share.Social.FACEBOOK,
                 });
             } else if (platform === 'Instagram') {
-                message = `Want rewards? Use my referral code and join me on this app: ${referralLink}`;
+                message = `Want rewards? Use my referral code ${referralLink} and join me on this app`;
 
                 await Share.open({
                     title: 'Share on Instagram',
@@ -130,7 +142,7 @@ const Rewards = () => {
                     social: Share.Social.INSTAGRAM,
                 });
             } else if (platform === 'Twitter') {
-                message = `Get rewarded by using my referral code: ${referralLink}`;
+                message = `Get rewarded by using my referral code ${referralLink}`;
 
                 await Share.open({
                     title: 'Share on Twitter',
@@ -139,7 +151,7 @@ const Rewards = () => {
                 });
 
             } else if (platform === 'Telegram') {
-                message = `Join me on this app and use my referral code for rewards: ${referralLink}`;
+                message = `Join me on this app and use my referral code ${referralLink} for rewards`;
 
                 await Share.open({
                     title: 'Share on Telegram',
@@ -189,14 +201,15 @@ const Rewards = () => {
                                 Invite friends and earn credits for each successful referral! Use your credits to unlock exclusive features and rewards.
                             </Text>
                             <View>
-                                <Text style={{ ...FONTS.fontXs, color: COLORS.primary, marginBottom: 6 }}>Referral ID</Text>
+                                <Text style={{ ...FONTS.fontXs, color: COLORS.primary, marginBottom: 6 }}>Invitation Code</Text>
                                 <LinearGradient
                                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                     colors={["rgba(255,255,255,.05)", "rgba(255,255,255,.1)", "rgba(255,255,255,.05)"]}
                                     style={{ borderColor: colors.borderColor, ...GlobalStyleSheet.formControl }}>
                                     <TextInput
                                         style={{ ...GlobalStyleSheet.Input, color: COLORS.white }}
-                                        value={userDetails.invite_code}
+                                        value={userDetails.user_id}
+                                        editable={false}
                                     />
                                     <View style={{
                                         flexDirection: 'row',
@@ -204,7 +217,7 @@ const Rewards = () => {
                                         right: 18,
                                         top: 12,
                                     }}>
-                                        <TouchableOpacity>
+                                        <TouchableOpacity onPress={copyToClipboard}>
                                             <Image
                                                 style={{
                                                     height: 20,
@@ -218,7 +231,7 @@ const Rewards = () => {
                                 </LinearGradient>
                             </View>
 
-                            <View>
+                            {/* <View>
                                 <Text style={{ ...FONTS.fontXs, color: COLORS.primary, marginBottom: 6 }}>Referral Link</Text>
                                 <LinearGradient
                                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
@@ -246,7 +259,7 @@ const Rewards = () => {
                                         </TouchableOpacity>
                                     </View>
                                 </LinearGradient>
-                            </View>
+                            </View> */}
 
                             <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
                                 {socialLink.map((data, index) => {
@@ -273,13 +286,16 @@ const Rewards = () => {
 
                         </ImageBackground>
 
-                        
-                        <View style={styles.successMessage}>
-                            <Text style={{color: '#fff', fontSize: 17, fontWeight: 'bold'}}>Success!</Text>
-                            <Text style={styles.successText}>
-                                You have unlocked new credits. Keep referring more friends to enjoy more benefits!
-                            </Text>
-                        </View>
+
+                        {
+                            userDetails?.totalReferrals >= 1 && <View style={styles.successMessage}>
+                                <Text style={{ color: '#fff', fontSize: 17, fontWeight: 'bold' }}>Success!</Text>
+                                <Text style={styles.successText}>
+                                    You have unlocked new credits. Keep referring more friends to enjoy more benefits!
+                                </Text>
+                            </View>
+                        }
+
 
                         <View style={{ ...GlobalStyleSheet.row, paddingHorizontal: 15, marginBottom: 35 }}>
                             <View style={{ ...GlobalStyleSheet.col50 }}>
@@ -313,7 +329,9 @@ const Rewards = () => {
                                         />
                                     </View>
                                     <Text style={{ ...FONTS.font, color: colors.title }}>Your Team</Text>
-                                    <Text style={{ ...FONTS.h2, color: COLORS.primary, lineHeight: 37 }}>0</Text>
+                                    <Text style={{ ...FONTS.h2, color: COLORS.primary, lineHeight: 37 }}>
+                                        {userDetails?.totalDownline || 0}
+                                    </Text>
                                 </View>
                             </View>
                             <View style={{ ...GlobalStyleSheet.col50 }}>
@@ -355,7 +373,9 @@ const Rewards = () => {
                                             alignItems: 'center',
                                         }}
                                     >
-                                        <Text style={{ ...FONTS.h5, ...FONTS.fontMedium, lineHeight: 37, color: colors.title }}>0</Text>
+                                        <Text style={{ ...FONTS.h5, ...FONTS.fontMedium, lineHeight: 37, color: colors.title }}>
+                                            {userDetails?.totalCredit || 0}
+                                        </Text>
                                     </View>
                                 </View>
                             </View>
@@ -445,12 +465,12 @@ const styles = StyleSheet.create({
         // alignItems: 'center',
         marginHorizontal: 15,
         marginBottom: 10,
-      },
-      successText: {
+    },
+    successText: {
         color: '#fff',
         fontSize: 16,
         marginTop: 5
-      },
+    },
 })
 
 

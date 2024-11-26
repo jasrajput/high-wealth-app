@@ -67,6 +67,7 @@ const SignIn = ({ navigation }) => {
             await AsyncStorage.setItem('fourthPhase', 'done');
 
             if (response.token) {
+                await AsyncStorage.setItem('token', response.token);
                 setLoading(false);
                 navigation.replace('drawernavigation');
             } else {
@@ -89,10 +90,10 @@ const SignIn = ({ navigation }) => {
 
         const fetchDetails = async () => {
             const token = await AsyncStorage.getItem('token');
+            const walletAddress = await getAddressFromSeed("binancecoin");
+            setWalletAddress(walletAddress);
+
             if (!token) {
-                const walletAddress = await getAddressFromSeed("binance");
-                setWalletAddress(walletAddress);
-                console.log("wall signup: ",walletAddress);
                 const response = await API.userLogin({ walletAddress });
                 if (response.token) {
                     await AsyncStorage.setItem('token', response.token);

@@ -38,12 +38,12 @@ const Deposit = ({ route }) => {
   const rpcUrls = [
   {
     name: 'binancecoin',
-    rpcUrl: 'https://bsc-dataseed.binance.org/',
+    rpcUrl: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
     decimals: 18, // Native token (BNB) uses 18 decimals
   },
   {
     name: 'tether',
-    rpcUrl: 'https://bsc-dataseed.binance.org/',
+    rpcUrl: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
     decimals: 18, // Native token (USDT) uses 18 decimals
   },
   {
@@ -52,7 +52,7 @@ const Deposit = ({ route }) => {
     decimals: 18, // Native token (ETH) uses 18 decimals
   },
   {
-    name: 'polygon',
+    name: 'matic-network',
     rpcUrl: 'https://polygon.drpc.org',
     decimals: 18, // Native token (MATIC) uses 18 decimals
   },
@@ -213,6 +213,14 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
           const data = await response.json();
           return data.result || [];
         }
+
+        case 'matic-network': {
+          const apiKey = 'RG7X63WC3BC75C3GTPUJFHI89QJCT38AR7';
+          const url = `https://amoy.polygonscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          return data.result || [];
+        }
   
         case 'tron': {
           const fetchTransactionsTron = async (address) => {
@@ -288,7 +296,6 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
     setAmount(amount);
     setAddress(senderAddress);
   }
-  
 
 
   const fetchBalanceEVM = async (walletAddress, rpcUrl, decimals) => {
@@ -308,7 +315,11 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
   
       const data = await response.json();
       const balance = data.result;
+      console.log("balance: ", balance)
+
       return balance ? parseInt(balance, 16) / Math.pow(10, decimals) : 0;
+
+
     } catch (error) {
       console.error(`EVM Balance Fetch Error:`, error);
       return 0;
@@ -376,7 +387,7 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
       case "tether":
         return fetchBalanceEVM(walletAddress, rpcDetails.rpcUrl, rpcDetails.decimals);
   
-      case "polygon":
+      case "matic-network":
         return fetchBalanceEVM(walletAddress, rpcDetails.rpcUrl, rpcDetails.decimals);
   
       case "bitcoin":

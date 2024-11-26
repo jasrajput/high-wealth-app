@@ -18,9 +18,9 @@ import SenderSheet from '../components/BottomSheet/SenderSheet';
 import RecipientSheet from '../components/BottomSheet/RecipientSheet';
 import { getAddressFromSeed } from '../helpers/wallet';
 
-const SearchCoin = ({coinData, refRb}) => {
+const SearchCoin = ({ coinData, refRb, selectedMethod }) => {
 
-    const {colors} = useTheme();
+    const { colors } = useTheme();
     const theme = useTheme();
     const [searchQuery, setSearchedQuery] = useState('');
     const [walletAddress, setWalletAddress] = useState('');
@@ -28,21 +28,23 @@ const SearchCoin = ({coinData, refRb}) => {
     const [selectedCurrency, setSelectedCurrency] = useState(null);
     const ref = useRef();
     const ref2 = useRef();
-    
+
+
+    console.log(refRb);
     useEffect(() => {
         const fetchWallet = async () => {
-            const address = await getAddressFromSeed();
+            const address = await getAddressFromSeed("binancecoin");
             setWalletAddress(address);
         }
 
         fetchWallet();
     }, [])
-    
+
 
     const handleSearch = (text) => {
         setSearchedQuery(text);
 
-        if(text.trim() === '') {
+        if (text.trim() === '') {
             setFilteredData(coinData);
         } else {
             const filtered = coinData.filter((item) =>
@@ -53,18 +55,18 @@ const SearchCoin = ({coinData, refRb}) => {
         }
     }
 
-    return(
+    return (
         <SafeAreaView>
             <View
                 style={{
-                    flexDirection:'row',
-                    alignItems:'center',
+                    flexDirection: 'row',
+                    alignItems: 'center',
                 }}
             >
                 <TouchableOpacity
                     onPress={() => refRb.current.close()}
                     style={{
-                        padding:12,
+                        padding: 12,
                     }}
                 >
                     <FeatherIcon
@@ -77,10 +79,10 @@ const SearchCoin = ({coinData, refRb}) => {
                     autoFocus={true}
                     style={{
                         ...FONTS.font,
-                        color:colors.title,
-                        flex:1,
-                        paddingHorizontal:10,
-                        top:1,
+                        color: colors.title,
+                        flex: 1,
+                        paddingHorizontal: 10,
+                        top: 1,
                     }}
                     placeholder='Search here..'
                     value={searchQuery}
@@ -88,44 +90,49 @@ const SearchCoin = ({coinData, refRb}) => {
                     onChangeText={handleSearch}
                 />
             </View>
-            
+
             <FlatList
                 style={{
-                    height:SIZES.height - 175
+                    height: SIZES.height - 175
                 }}
                 data={filteredData}
-                renderItem={({item}) => (
+                renderItem={({ item }) => (
                     <View>
                         <TouchableOpacity
                             onPress={() => {
                                 setSelectedCurrency(item.tag);
-                                ref.current.open();
+                                if (selectedMethod === 'send') {
+                                    ref.current.open();
+                                } else {
+                                    ref2.current.open();
+                                }
+
                             }}
                             style={[{
-                                flexDirection:'row',
-                                alignItems:'center',
-                                paddingVertical:12,
-                                paddingHorizontal:15,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                paddingVertical: 12,
+                                paddingHorizontal: 15,
                             }]}
                         >
                             <Image
                                 style={{
-                                    height:30,
-                                    width:30,
-                                    borderRadius:30,
-                                    marginRight:10,
+                                    height: 30,
+                                    width: 30,
+                                    borderRadius: 30,
+                                    marginRight: 10,
                                 }}
-                                source={{uri: item.coin}}
+                                source={{ uri: item.coin }}
                             />
-                            <Text style={{...FONTS.font,...FONTS.fontMedium,color:colors.title,flex:1}}>{item.coinName}</Text>
-                            <Text style={{...FONTS.fontSm,color:colors.text}}>{item.tag}</Text>
+                            <Text style={{ ...FONTS.font, ...FONTS.fontMedium, color: colors.title, flex: 1 }}>{item.coinName}</Text>
+                            <Text style={{ ...FONTS.fontSm, color: colors.text }}>{item.tag}</Text>
                         </TouchableOpacity>
                         <LinearGradient
-                            start={{x: 0, y: 0}} end={{x: 1, y: 0}}
-                            colors={theme.dark ? ["rgba(255,255,255,0)","rgba(255,255,255,.1)","rgba(255,255,255,0)"] : ["rgba(0,0,0,0)","rgba(0,0,0,.1)","rgba(0,0,0,0)"]}
+                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                            colors={theme.dark ? ["rgba(255,255,255,0)", "rgba(255,255,255,.1)", "rgba(255,255,255,0)"] : ["rgba(0,0,0,0)", "rgba(0,0,0,.1)", "rgba(0,0,0,0)"]}
                             style={{
-                                height:1,
-                                width:'100%',
+                                height: 1,
+                                width: '100%',
                             }}
                         >
                         </LinearGradient>
@@ -144,12 +151,12 @@ const SearchCoin = ({coinData, refRb}) => {
 
 
 const styles = StyleSheet.create({
-    coinList:{
-        paddingHorizontal:SIZES.padding,
-        paddingVertical:10,
-        flexDirection:'row',
-        justifyContent:'space-between',
-        alignItems:'center'
+    coinList: {
+        paddingHorizontal: SIZES.padding,
+        paddingVertical: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center'
     }
 })
 

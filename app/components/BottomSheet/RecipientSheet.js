@@ -14,7 +14,7 @@ const RecipientSheet = ({ refRBSheet2, walletAddress, COLORS, symbol }) => {
           backgroundColor: COLORS.success,
           duration: Snackbar.LENGTH_SHORT,
         });
-      };
+    };
 
       
     const onShareAddress = async () => {

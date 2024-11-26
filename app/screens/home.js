@@ -24,19 +24,22 @@ const Home = () => {
     const theme = useTheme();
     const navigation = useNavigation();
     const [balances, setBalances] = useState({});
+    const [selectedMethod, setSelectedMethod] = useState('send');
+    
     const refRBSheet = useRef();
-    const coinIds = ['bitcoin', 'ethereum', 'tether', 'binancecoin', 'dogecoin', 'solana', 'tron', 'matic-network'];
+    const coinIds = ['matic-network', 'bitcoin', 'ethereum', 'tether', 'binancecoin', 'solana', 'tron'];
 
     if (error) {
         return <Text style={{ color: 'red', textAlign: 'center', marginTop: 20 }}>{error}</Text>;
     }
 
-    const openSheet = () => {
+    const openSheet = (method) => {
         refRBSheet.current?.open();
+        setSelectedMethod(method);
     }
 
     const getBalance = async () => {
-        const walletAddress = await getAddressFromSeed("binance");
+        const walletAddress = await getAddressFromSeed("binancecoin");
         console.log("walletAddress: ", walletAddress)
         const url = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
         const body = JSON.stringify({
@@ -78,15 +81,15 @@ const Home = () => {
             const balances = await getWalletBalances();
             setBalances(balances);
         };
-    
+
         fetchBalances();
     }, []);
 
-    
+
     const { coinData, loading, error } = useFetchCoinData(coinIds, 'usd', balances);
     const totalBalance = coinData && coinData.length > 0
-    ? coinData.reduce((acc, data) => acc + (parseFloat(data.usdValue) || 0), 0).toFixed(2)
-    : '0.00';
+        ? coinData.reduce((acc, data) => acc + (parseFloat(data.usdValue) || 0), 0).toFixed(2)
+        : '0.00';
 
     return (
         loading ? (
@@ -95,33 +98,32 @@ const Home = () => {
             </View>
         ) : (
             <View style={{ ...styles.container, backgroundColor: colors.background }}>
+                <BalanceChart balance={`$${totalBalance}`} onSend={() => openSheet('send')} onReceive={() => openSheet('receive')}  />
+
+                <RBSheet
+                    ref={refRBSheet}
+                    closeOnPressBack={true}
+                    closeOnDragDown={true}
+                    height={SIZES.height}
+                    openDuration={300}
+                    customStyles={{
+                        container: {
+                            backgroundColor: colors.background,
+                        },
+                        draggableIcon: {
+                            width: 90,
+                            height: 0,
+                            backgroundColor: colors.borderColor
+                        }
+                    }}
+                >
+                    <SearchCoin selectedMethod={selectedMethod} coinData={coinData} refRb={refRBSheet} />
+                </RBSheet>
+
+
                 <ScrollView>
-                    <BalanceChart balance={`$${totalBalance}`} onSend={openSheet} onReceive={openSheet} />
-
-                    <RBSheet
-                        ref={refRBSheet}
-                        closeOnPressBack={true}
-                        closeOnDragDown={true}
-                        height={SIZES.height}
-                        openDuration={300}
-                        customStyles={{
-                            container: {
-                                backgroundColor: colors.background,
-                            },
-                            draggableIcon: {
-                                width: 90,
-                                height: 0,
-                                backgroundColor: colors.borderColor
-                            }
-                        }}
-                    >
-                        <SearchCoin coinData={coinData} refRb={refRBSheet} />
-                    </RBSheet>
-
-
-                    <ScrollView>
-                        {
-                            coinData
+                    {
+                        coinData
                             .sort((a, b) => b.usdValue - a.usdValue)
                             .map((data) => (
                                 <View key={data.id} style={[styles.coinList, { backgroundColor: theme.colors.card },
@@ -197,8 +199,7 @@ const Home = () => {
                                     </View>
                                 </View>
                             ))
-                        }
-                    </ScrollView>
+                    }
                 </ScrollView>
             </View>
         )

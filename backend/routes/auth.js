@@ -7,6 +7,7 @@ const { generateToken, verifyToken } = require('../middlewares/authMiddleware');
 const FundTransaction = require('../models/FundTransaction');
 const Wallet = require('../models/Wallet');
 const Transaction = require('../models/Transaction');
+const Level = require('../models/Level');
 
 const router = express.Router();
 
@@ -27,7 +28,7 @@ router.post('/register', validateUserRegistration, handleValidationErrors, async
       const referrer = await validateRefCode(ref_code);
 
       if (referrer) {
-        user.ref_code = referrer.invite_code;
+        user.real_sponsor_id = referrer.user_id;
       } else {
         return res.status(400).json({ error: 'Invalid referral code' });
       }
@@ -35,13 +36,13 @@ router.post('/register', validateUserRegistration, handleValidationErrors, async
       const firstUser = await User.findOne().sort({ _id: 1 });
 
       if (firstUser) {
-        user.ref_code = firstUser.invite_code;
+        user.real_sponsor_id = firstUser.user_id;
       } else {
-        user.ref_code = '0';
+        user.real_sponsor_id = null;
       }
     }
 
-    user.invite_code = await generateUniqueCode();
+    user.user_id = await generateUniqueCode();
     await user.save();
 
     const wallet = new Wallet({
@@ -50,7 +51,7 @@ router.post('/register', validateUserRegistration, handleValidationErrors, async
 
     await wallet.save();
 
-    await insertLevels(user.ref_code, user._id);
+    await insertLevels(user.real_sponsor_id, user._id);
 
     const tokenData = generateToken(user);
 
@@ -131,7 +132,7 @@ router.get('/me', verifyToken, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const wallet = await Wallet.findOne({ user: user._id });
+    let wallet = await Wallet.findOne({ user: user._id });
     if (wallet) {
       wallet = {
         bot_com: wallet.bot_com,
@@ -140,17 +141,90 @@ router.get('/me', verifyToken, async (req, res) => {
       }
     }
 
-    // Return user data (excluding sensitive information)
+
+    const totalReferrals = await User.countDocuments({ real_sponsor_id: user.user_id });
+    const totalDownline = await Level.countDocuments({ to_id: user._id });
+
+    const totalRewards = await Transaction.aggregate([
+      { $match: { user_id: user._id } },
+      { $group: { _id: null, totalCredit: { $sum: "$credit" } } }
+    ]);
+
+    const totalCredit = totalRewards.length > 0 ? totalRewards[0].totalCredit : 0;
+
+    const transactions = await Transaction.aggregate([
+      {
+        $match: {
+          user_id: user._id,
+          direction: 111,
+        },
+      },
+      {
+        $group: {
+          _id: "$level", // Group by level
+          totalCredit: { $sum: "$credit" }, // Sum the credit for each level
+        },
+      },
+      {
+        $sort: { _id: 1 }, // Sort by level (optional)
+      },
+    ]);
+
+
+    const dailyTotalEarnings = await Transaction.aggregate([
+      {
+        $match: {
+          user_id: user._id,
+          createdAt: {
+            $gte: new Date(new Date().setHours(0, 0, 0, 0)), // Start of today
+            $lt: new Date(new Date().setHours(23, 59, 59, 999)), // End of today
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalCredit: { $sum: "$credit" },
+        },
+      },
+    ]);
+
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1); // Start of the month
+    const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999); // End of the month
+
+    const monthlyTotal = await Transaction.aggregate([
+      {
+        $match: {
+          user_id: user._id, // Filter by user_id
+          createdAt: {
+            $gte: startOfMonth,
+            $lt: endOfMonth,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalCredit: { $sum: "$credit" },
+        },
+      },
+    ]);
+
     res.status(200).json({
       userId: user._id,
       name: user.name,
       email: user.email,
-      invite_code: user.invite_code,
-      ref_code: user.ref_code,
+      user_id: user.user_id,
+      real_sponsor_id: user.real_sponsor_id,
       wallet: user.address,
       isClaimed: user.isClaimed,
-      wallet
-
+      wallet,
+      transactions: transactions,
+      totalReferrals,
+      totalDownline,
+      totalCredit,
+      dailyEarnings: dailyTotalEarnings[0]?.totalCredit || 0,
+      monthlyEarnings: monthlyTotal[0]?.totalCredit || 0
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -163,21 +237,19 @@ router.get('/bonus-history', verifyToken, async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    // Fetch transaction history for the user
     const transactions = await Transaction.find({ user_id: userId }).sort({ createdAt: -1 });
-
-    // Return transaction history
     res.status(200).json({
-      userId,
-      bonus_history: transactions.map(tx => ({
-        credit: tx.credit,
-        debit: tx.debit,
-        description: tx.description,
-        direction: tx.direction,
-        date: tx.createdAt,
-        from_id: tx.from_id,
-        level: tx.level
-      })),
+      // bonus_history: transactions.map(tx => ({
+      //   credit: tx.credit,
+      //   debit: tx.debit,
+      //   description: tx.description,
+      //   direction: tx.direction,
+      //   date: tx.createdAt,
+      //   from_id: tx.from_id,
+      //   level: tx.level
+      // }))
+
+       transactions
     });
   } catch (error) {
     console.error('Error fetching bonus history:', error);
