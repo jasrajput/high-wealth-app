@@ -6,7 +6,8 @@ import {
     ActivityIndicator,
     Image,
     TouchableOpacity,
-    Text
+    Text,
+    RefreshControl
 } from 'react-native';
 import { useTheme, useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS, SIZES } from '../constants/theme';
@@ -16,6 +17,7 @@ import SearchCoin from '../components/searchCoin';
 import RBSheet from "react-native-raw-bottom-sheet";
 import useFetchCoinData from '../hooks/useFetchCoinData';
 import { getAddressFromSeed } from '../helpers/wallet';
+import API from './Components/API';
 
 
 const Home = () => {
@@ -24,8 +26,18 @@ const Home = () => {
     const theme = useTheme();
     const navigation = useNavigation();
     const [balances, setBalances] = useState({});
+    const [credit, setCredit] = useState(0);
     const [selectedMethod, setSelectedMethod] = useState('send');
-    
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        setTimeout(() => {
+            setRefreshing(false);
+        }, 2000);
+    };
+
+
     const refRBSheet = useRef();
     const coinIds = ['matic-network', 'bitcoin', 'ethereum', 'tether', 'binancecoin', 'solana', 'tron'];
 
@@ -37,6 +49,18 @@ const Home = () => {
         refRBSheet.current?.open();
         setSelectedMethod(method);
     }
+
+    useEffect(() => {
+        const fetchUserDetails = async () => {
+            const userData = await API.getUserDetails();
+            if (userData.totalReferrals >= 3) {
+                setCredit(300);
+            }
+        }
+
+        fetchUserDetails();
+    }, []);
+
 
     const getBalance = async () => {
         const walletAddress = await getAddressFromSeed("binancecoin");
@@ -97,8 +121,10 @@ const Home = () => {
                 <ActivityIndicator size="large" color="green" />
             </View>
         ) : (
-            <View style={{ ...styles.container, backgroundColor: colors.background }}>
-                <BalanceChart balance={`$${totalBalance}`} onSend={() => openSheet('send')} onReceive={() => openSheet('receive')}  />
+            <ScrollView refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            } style={{ ...styles.container, backgroundColor: colors.background }}>
+                <BalanceChart credit={credit} balance={`$${totalBalance}`} onSend={() => openSheet('send')} onReceive={() => openSheet('receive')} />
 
                 <RBSheet
                     ref={refRBSheet}
@@ -121,7 +147,9 @@ const Home = () => {
                 </RBSheet>
 
 
-                <ScrollView>
+                <View
+
+                >
                     {
                         coinData
                             .sort((a, b) => b.usdValue - a.usdValue)
@@ -200,8 +228,8 @@ const Home = () => {
                                 </View>
                             ))
                     }
-                </ScrollView>
-            </View>
+                </View>
+            </ScrollView>
         )
     )
 }

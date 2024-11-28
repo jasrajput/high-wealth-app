@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, RefreshControl } from 'react-native';
 import HeaderBar from '../layout/header';
 import { SIZES, IMAGES, COLORS, FONTS } from '../constants/theme';
 import { useTheme, useNavigation } from '@react-navigation/native';
@@ -20,6 +20,15 @@ const Dashboard = () => {
   const [arbitrageInfo, setArbitrageInfo] = useState(null);
   const refRBSheet = useRef();
   const refWithdrawRBSheet = useRef();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  };
+
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -98,7 +107,11 @@ const Dashboard = () => {
 
 
   return (
-    <ScrollView style={{ ...styles.container, backgroundColor: colors.background }}>
+    <ScrollView style={{ ...styles.container, backgroundColor: colors.background }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <HeaderBar rightIcon={'notification'} title="Earning Overview" />
       <View style={{ height: 4 }} />
 
@@ -189,12 +202,13 @@ const Dashboard = () => {
                 <Text style={styles.smallText}>
                   Level 4: ${levels?.[3]?.totalCredit ?? '0.00'}
                 </Text>
-              </View>
-
-              <View>
                 <Text style={styles.smallText}>
                   Level 5: ${levels?.[4]?.totalCredit ?? '0.00'}
                 </Text>
+              </View>
+
+              <View>
+
                 <Text style={styles.smallText}>
                   Level 6: ${levels?.[5]?.totalCredit ?? '0.00'}
                 </Text>
@@ -204,6 +218,13 @@ const Dashboard = () => {
                 <Text style={styles.smallText}>
                   Level 8: ${levels?.[7]?.totalCredit ?? '0.00'}
                 </Text>
+                <Text style={styles.smallText}>
+                  Level 9: ${levels?.[8]?.totalCredit ?? '0.00'}
+                </Text>
+                <Text style={styles.smallText}>
+                  Level 10: ${levels?.[9]?.totalCredit ?? '0.00'}
+                </Text>
+
               </View>
             </View>
             {/* </TouchableOpacity> */}

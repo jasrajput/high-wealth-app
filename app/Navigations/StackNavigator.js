@@ -4,6 +4,7 @@ import { StatusBar , StyleSheet , Platform , View} from "react-native";
 import SignIn from '../screens/Auth/signin';
 import SignUp from '../screens/Auth/signup';
 import EmailVerify from '../screens/Auth/emailverify';
+import VerifyPassword from '../screens/Auth/verifyPassword';
 import ChangePassword from '../screens/Auth/changepassword';
 import DrawerNavigation from "./DrawerNavigation";
 import Verification from '../screens/verification';
@@ -52,6 +53,7 @@ import WelcomeV3 from "../screens/Welcomev3";
 import WelcomeV4 from "../screens/Welcomev4";
 import Deposit from "../screens/Deposit";
 import WelcomeImport from "../screens/WelcomeImport";
+import Terms from "../screens/Terms";
 // import Scan from "../screens/scan";
 
 
@@ -72,7 +74,7 @@ const StackNavigator = () => {
     <View style={[styles.container,{backgroundColor:colors.background}]}>
         <MyStatusBar barStyle={theme.dark ? "light-content" : "dark-content"} />
         <Stack.Navigator
-          initialRouteName="intro"
+          initialRouteName="verifyPassword"
           screenOptions={{
             headerShown: false,
             cardStyle: { backgroundColor: "transparent" },
@@ -87,6 +89,10 @@ const StackNavigator = () => {
         <Stack.Screen name="deposit" component={Deposit} />
         
         <Stack.Screen name="welcomeImport" component={WelcomeImport} />
+        <Stack.Screen name="terms" component={Terms} />
+        <Stack.Screen name="verifyPassword" component={VerifyPassword} />
+        
+        
         {/* <Stack.Screen name="scan" component={Scan} /> */}
 
 

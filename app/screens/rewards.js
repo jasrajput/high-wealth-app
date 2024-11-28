@@ -9,7 +9,7 @@ import {
     TouchableOpacity,
     TextInput,
     ImageBackground,
-    Modal,
+    RefreshControl,
 } from 'react-native';
 
 import { FONTS, SIZES, COLORS, ICONS, IMAGES } from '../constants/theme';
@@ -70,6 +70,14 @@ const tableData = [
     {
         num: '#9',
         split: '3%',
+    },
+    {
+        num: '#10',
+        split: '1%',
+    },
+    {
+        num: '#11',
+        split: '1%',
     }
 ]
 
@@ -81,6 +89,14 @@ const Rewards = () => {
     const { colors } = useTheme();
     const [userDetails, setUserDetails] = useState([]);
     const [referralLink, setReferralLink] = useState('');
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        setTimeout(() => {
+            setRefreshing(false); // End the refreshing state
+        }, 2000);
+    };
 
 
     useEffect(() => {
@@ -169,7 +185,11 @@ const Rewards = () => {
             <View style={{ ...styles.container, backgroundColor: colors.background }}>
                 <HeaderBar title="Referrals" leftIcon={'back'} />
 
-                <ScrollView contentContainerStyle={{ marginTop: 15 }}>
+                <ScrollView contentContainerStyle={{ marginTop: 15 }}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }
+                >
                     <View style={{ flex: 1, marginHorizontal: 25, marginVertical: 10 }}>
                         <Text style={{ fontSize: SIZES.h6, color: '#000', fontWeight: 'bold' }}>Referral Progress</Text>
 

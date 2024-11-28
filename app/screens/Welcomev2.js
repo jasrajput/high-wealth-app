@@ -41,20 +41,20 @@ const WelcomeV2 = () => {
                 <Text style={{ ...FONTS.xs, textAlign: 'center', marginTop: 5, paddingHorizontal: 10 }}>
                     To be able to recognize your wallet. Please give your wallet a  name
                 </Text>
-                <View style={{margin: 10}}>
-                <Text style={{marginTop: 20}}>Wallet name</Text>
-                <TextInput
-                    value={walletName}
-                    onChangeText={text => setWalletName(text)}
-                    onFocus={() => setisFocused(true)}
-                    onBlur={() => setisFocused(false)}
-                    placeholderTextColor={colors.text}
-                    style={[
-                        {height: 40,borderWidth: 1, borderColor: '#ccc', paddingHorizontal: 10, color: colors.text, marginTop: 5},
-                        isFocused ? styles.inputActive : ""
-                    ]}
-                    placeholder='Enter your wallet name'
-                />
+                <View style={{ margin: 10 }}>
+                    <Text style={{ marginTop: 20 }}>Wallet name</Text>
+                    <TextInput
+                        value={walletName}
+                        onChangeText={text => setWalletName(text)}
+                        onFocus={() => setisFocused(true)}
+                        onBlur={() => setisFocused(false)}
+                        placeholderTextColor={colors.text}
+                        style={[
+                            { height: 40, borderWidth: 1, borderColor: '#ccc', paddingHorizontal: 10, color: colors.text, marginTop: 5 },
+                            isFocused ? styles.inputActive : ""
+                        ]}
+                        placeholder='Enter your wallet name'
+                    />
                 </View>
             </View>
 

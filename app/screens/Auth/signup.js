@@ -21,6 +21,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import API from '../Components/API';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAddressFromSeed } from '../../helpers/wallet';
+import TermsAndConditionsModal from '../../components/modal/TermsModal';
 
 
 const SignIn = ({ navigation }) => {
@@ -32,6 +33,8 @@ const SignIn = ({ navigation }) => {
     const [isFocused2, setisFocused2] = useState(false);
     const [isFocused3, setisFocused3] = useState(false);
     const [isLoading, setLoading] = useState(true);
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [isAccepted, setAccepted] = useState(false);
 
     const [form, setForm] = useState({
         fullName: '',
@@ -39,6 +42,18 @@ const SignIn = ({ navigation }) => {
         ref_code: '',
     });
 
+
+    const handleAccept = () => {
+        setModalVisible(false);
+        setAccepted(true);
+        console.log('User accepted the terms');
+    };
+    
+
+    const handleCancel = () => {
+        setModalVisible(false);
+        console.log('User canceled');
+    };
 
     const handleInputChange = (name, value) => {
         setForm({
@@ -49,6 +64,8 @@ const SignIn = ({ navigation }) => {
 
 
     const onRegister = async () => {
+        if(!isAccepted) return ToastAndroid.show('Please accept the terms & conditions before continuing', ToastAndroid.SHORT);
+
         if (!form.fullName || !form.email) {
             ToastAndroid.show('Please fill out full name and email.', ToastAndroid.SHORT);
             return;
@@ -100,7 +117,7 @@ const SignIn = ({ navigation }) => {
                     navigation.navigate('drawernavigation');
                 }
             } else {
-                navigation.navigate('drawernavigation');
+                // navigation.navigate('drawernavigation');
             }
         }
 
@@ -301,10 +318,24 @@ const SignIn = ({ navigation }) => {
                                     {isLoading ? (
                                         <ActivityIndicator size="large" color="green" />
                                     ) : (
-                                        <CustomButton
-                                            onPress={onRegister}
-                                            title="Create"
-                                        />
+                                        <>
+                                            <Text style={styles.text}>
+                                                By proceeding, you agree to our{' '}
+                                                <Text style={styles.link} onPress={() => setModalVisible(true)}>
+                                                    Terms and Conditions
+                                                </Text>.
+                                            </Text>
+                                            <CustomButton
+                                                onPress={onRegister}
+                                                title="Create"
+                                            />
+
+                                            <TermsAndConditionsModal
+                                                visible={isModalVisible}
+                                                onAccept={handleAccept}
+                                                onCancel={handleCancel}
+                                            /></>
+
                                     )}
                                 </Animatable.View>
                             </View>
@@ -377,7 +408,18 @@ const styles = StyleSheet.create({
     eyeImg: {
         height: 20,
         width: 20,
-    }
+    },
+
+    text: {
+        fontSize: 15,
+        textAlign: 'center',
+        // marginHorizontal: 20,
+        marginBottom: 15
+    },
+    link: {
+        color: 'blue',
+        textDecorationLine: 'underline',
+    },
 })
 
 export default SignIn;

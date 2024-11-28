@@ -6,7 +6,8 @@ import {
     Image,
     Text,
     Animated,
-    ScrollView
+    ScrollView,
+    RefreshControl
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import HeaderBar from '../layout/header';
@@ -17,7 +18,8 @@ import { COLORS, SIZES, ICONS } from '../constants/theme';
 import Snackbar from 'react-native-snackbar';
 
 
-const loanAmount = '9,000';
+const monthlyLoanAmount = '9,000';
+const dailyLoanAmount = '300';
 
 const generateRandomProfit = () => {
     return (Math.random() * (0.16 - 0.01) + 0.01).toFixed(2);
@@ -38,7 +40,14 @@ const Credit = () => {
     const animatedValue = useRef(new Animated.Value(0)).current;
     const [activeSearches, setActiveSearches] = useState(generateRandomActiveSearches());
     const [potentialProfit, setPotentialProfit] = useState(generateRandomProfit());
+    const [refreshing, setRefreshing] = useState(false);
 
+    const onRefresh = () => {
+        setRefreshing(true);
+        setTimeout(() => {
+            setRefreshing(false);
+        }, 2000);
+    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -51,10 +60,10 @@ const Credit = () => {
 
 
     const handlePress = async () => {
-        if (userData) {
-            if (userData.totalReferrals >= 3) {
+        const userDetails = await API.getUserDetails();
+        if (userDetails) {
+            if (userDetails.totalReferrals >= 3) {
                 const response = await API.claim({});
-                console.log(response);
                 if (response.status) {
                     setClaimed(true);
                     setShowConfetti(true);
@@ -288,7 +297,10 @@ const Credit = () => {
 
     return (
         <>
-            <ScrollView style={{ ...styles.container, backgroundColor: colors.background }}>
+            <ScrollView style={{ ...styles.container, backgroundColor: colors.background }}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }>
                 <HeaderBar leftIcon={'back'} title="Activate Credit" />
                 <View style={{ flex: 1, backgroundColor: '#fff', padding: 20 }}>
                     {showConfetti && (
@@ -311,11 +323,11 @@ const Credit = () => {
                                         <Text style={{ fontSize: 17, color: '#000', fontWeight: '900', marginBottom: 10 }}>
                                             Credits Balance
                                         </Text>
+                                        {/* <Text style={{ fontSize: 15, color: '#000', marginTop: 5 }}>
+                                            Total Credits: {monthlyLoanAmount}
+                                        </Text> */}
                                         <Text style={{ fontSize: 15, color: '#000', marginTop: 5 }}>
-                                            Total Credits: {loanAmount}
-                                        </Text>
-                                        <Text style={{ fontSize: 15, color: '#000', marginTop: 5 }}>
-                                            Daily: {loanAmount}
+                                            Total Credits: ${dailyLoanAmount}
                                         </Text>
                                         <Text style={{ fontSize: 15, color: '#000', marginTop: 25 }}>
                                             Potential earmings: 0.3% to 0.5%
