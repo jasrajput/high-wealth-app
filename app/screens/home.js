@@ -64,8 +64,7 @@ const Home = () => {
 
     const getBalance = async () => {
         const walletAddress = await getAddressFromSeed("binancecoin");
-        console.log("walletAddress: ", walletAddress)
-        const url = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
+        const url = 'https://bsc-dataseed.binance.org/';
         const body = JSON.stringify({
             jsonrpc: '2.0',
             id: 1,

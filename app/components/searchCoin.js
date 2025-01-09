@@ -30,7 +30,6 @@ const SearchCoin = ({ coinData, refRb, selectedMethod }) => {
     const ref2 = useRef();
 
 
-    console.log(refRb);
     useEffect(() => {
         const fetchWallet = async () => {
             const address = await getAddressFromSeed("binancecoin");

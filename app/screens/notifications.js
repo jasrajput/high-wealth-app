@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {
     View,
@@ -12,30 +12,36 @@ import Ripple from 'react-native-material-ripple';
 import { useTheme } from '@react-navigation/native';
 import HeaderBar from '../layout/header';
 import { FONTS, SIZES, COLORS, ICONS } from '../constants/theme';
-
-
-const notification = [
-    // {
-    //     id:'1',
-    //     title:'Login attempted from new IP',
-    //     desc:'The System has detected that your account is the best.',
-    //     time:'2 Min',
-    // }
-]
+import API from './Components/API';
 
 
 const Notifications = () => {
+    const [notifications ,setNotifications] = useState([]);
 
     const { colors } = useTheme();
 
+    useEffect(() => {
+        const fetchNotifcations = async () => {
+          const details = await API.getNotifications();
+          if (details.notifications.length > 0) {
+            setNotifications(details.notifications);
+            const res = await API.markAllNotificationsAsRead({});
+            if (res.status) {
+                console.log("Marked all read");
+            }
+          }
+        }
+    
+        fetchNotifcations();
+      }, []);
     return (
         <>
             <View style={{ ...styles.container, backgroundColor: colors.background }}>
                 <HeaderBar title="Notifications" leftIcon={'back'} />
                 <View style={{ flex: 1 }}>
                     {
-                        notification.length >= 1 && <FlatList
-                            data={notification}
+                        notifications.length >= 1 && <FlatList
+                            data={notifications}
                             renderItem={({ item }) => (
                                 <Ripple
                                     style={{
@@ -89,10 +95,12 @@ const Notifications = () => {
                                                 ...FONTS.fontXs,
                                                 color: colors.text,
                                             }}
-                                        >{item.desc}</Text>
+                                        >{item.message}</Text>
                                     </View>
                                     <View style={{ alignSelf: 'flex-end', width: 60, alignItems: 'flex-end' }}>
-                                        <Text style={{ ...FONTS.fontSm, color: COLORS.primary }}>{item.time}</Text>
+                                        <Text style={{ ...FONTS.fontSm, color: COLORS.primary }}>
+                                            {new Date(item.createdAt).toLocaleString()}
+                                        </Text>
                                     </View>
                                 </Ripple>
                             )}
@@ -100,7 +108,7 @@ const Notifications = () => {
                     }
 
                     {
-                        notification.length === 0 && <Text style={{textAlign: 'center', marginTop: 15}}>No notification yet</Text>
+                        notifications.length === 0 && <Text style={{textAlign: 'center', marginTop: 15}}>No notification yet</Text>
                     }
                 </View>
             </View>

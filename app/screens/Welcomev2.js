@@ -21,7 +21,6 @@ const WelcomeV2 = () => {
     const saveWalletName = async () => {
         try {
             await Keychain.setGenericPassword("walletName", walletName, { service: "walletName" });
-            console.log('Wallet password saved securely');
             navigation.navigate('welcomev3')
         } catch (error) {
             console.error('Failed to save wallet name:', error);

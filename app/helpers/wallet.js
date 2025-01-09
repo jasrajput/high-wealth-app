@@ -108,10 +108,7 @@ export const getAddressFromSeed = (tokenName) => {
         const seedPhrase = credentials.password;
         try {
 
-          console.log(tokenName);
           const address = await generateAddresses(seedPhrase, tokenName);
-          console.log(address);
-          // console.log(data);
           // return;
 
           // const wallet = ethers.HDNodeWallet.fromPhrase(seedPhrase);

@@ -45,7 +45,6 @@ const WelcomeImport = ({ route }) => {
             
             return wallet;
         } catch (error) {
-            console.log(error);
             return error;
         }
     };
@@ -92,7 +91,6 @@ const WelcomeImport = ({ route }) => {
                     }
                 }
     
-                console.log('Recovery phrase verified successfully');
                 const wallet = validateRecoveryPhrase(recoveryPhrase);
                 AsyncStorage.setItem('secondPhase', 'done').then(() => {
                     navigation.navigate('welcomev4', {
@@ -110,13 +108,11 @@ const WelcomeImport = ({ route }) => {
                 }
     
                 const wallet = validateRecoveryPhrase(recoveryPhrase);
-                console.log(wallet);
                 if (!wallet.address) {
                     throw new Error('Invalid recovery phrase');
                 }
     
                 await Keychain.setGenericPassword("recoveryPhrase", recoveryPhrase, { service: "recoveryData" });
-                console.log('Recovery phrase saved securely');
                 AsyncStorage.setItem('secondPhase', 'done').then(() => {
                     navigation.navigate('welcomev4', {
                         wallet: wallet

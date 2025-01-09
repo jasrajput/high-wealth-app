@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, RefreshControl, BackHandler } from 'react-native';
 import HeaderBar from '../layout/header';
 import { SIZES, IMAGES, COLORS, FONTS } from '../constants/theme';
 import { useTheme, useNavigation } from '@react-navigation/native';
@@ -14,13 +14,31 @@ import Snackbar from 'react-native-snackbar';
 const Dashboard = () => {
   const { colors } = useTheme();
   const [userDetails, setUserDetails] = useState({});
-  const navigation = useNavigation();
   const [prices, setPrices] = useState([]);
   const [levels, setLevels] = useState([]);
   const [arbitrageInfo, setArbitrageInfo] = useState(null);
   const refRBSheet = useRef();
   const refWithdrawRBSheet = useRef();
   const [refreshing, setRefreshing] = useState(false);
+  const [joinDate, setJoinDate] = useState(0);
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
+
+
+  const padNumber = (num) => String(num).padStart(2, '0');
+
+  const TimeUnit = ({ value, label }) => (
+    <View style={styles.timeBox}>
+      <View style={styles.valueBox}>
+        <Text style={styles.number}>{padNumber(value)}</Text>
+      </View>
+      <Text style={styles.label}>{label}</Text>
+    </View>
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -33,16 +51,54 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchUserDetails = async () => {
       const details = await API.getUserDetails();
-      console.log(userDetails);
+      if (details.isBlocked) {
+        BackHandler.exitApp();
+        return;
+      }
+
       setLevels(details?.transactions);
       if (details) {
         setUserDetails(details);
+        setJoinDate(details.joinedOn)
       }
     }
 
     fetchUserDetails();
   }, []);
 
+
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const joinDateTime = new Date(joinDate);
+
+      if (joinDateTime > 0) {
+        const currentTime = new Date();
+        const endTime = new Date(joinDateTime);
+        endTime.setDate(endTime.getDate() + 30);
+
+        const timeDifference = endTime - currentTime;
+        if (timeDifference <= 0) {
+          setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+          return;
+        }
+
+        const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+        setTimeLeft({ days, hours, minutes, seconds });
+      }
+    };
+
+    // Call the function immediately and then every second
+    calculateTimeLeft();
+    const interval = setInterval(calculateTimeLeft, 1000);
+
+    // Clear the interval when the component unmounts
+    return () => clearInterval(interval);
+  }, [joinDate]);
 
   useEffect(() => {
     // Simulate real-time price updates
@@ -60,13 +116,25 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [prices]);
 
+  const processWithdraw = async () => {
+    const response = await API.withdraw({});
+    if (response.status) {
+      Snackbar.show({
+        text: response.message,
+        backgroundColor: COLORS.success,
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    } else {
+      Snackbar.show({
+        text: response.message,
+        backgroundColor: COLORS.warning,
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    }
 
-  const processWithdraw = () => {
-    return Snackbar.show({
-      text: 'Please wait for 30 days before making a withdrawal',
-      backgroundColor: COLORS.warning,
-      duration: Snackbar.LENGTH_SHORT,
-    });
+    setTimeout(() => {
+      refWithdrawRBSheet.current.close();
+    }, 2000);
   }
 
 
@@ -112,7 +180,7 @@ const Dashboard = () => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      <HeaderBar rightIcon={'notification'} title="Earning Overview" />
+      <HeaderBar totalUnreadNewsNotifications={userDetails?.totalUnreadNewsNotifications} totalUnreadNotifications={userDetails?.totalUnreadNotifications} anotherRightIcon={'news'} rightIcon={'notification'} title="Earning Overview" />
       <View style={{ height: 4 }} />
 
       <View style={{ flex: 1, backgroundColor: '#fff', padding: 20 }}>
@@ -121,11 +189,26 @@ const Dashboard = () => {
           style={{
             borderRadius: SIZES.radius,
             backgroundColor: COLORS.primary,
+
           }}>
           <Text style={[styles.sectionTitle, { fontSize: 18, color: '#fff', textAlign: 'center', marginTop: 10, paddingTop: 10, paddingBottom: 15 }]}>
             Daily Earnings - ${userDetails?.dailyEarnings || '0.00'}
           </Text>
         </View>
+
+
+        {
+          (timeLeft.days > 0 || timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0) && (
+            <>
+              <View style={styles.wrapper}>
+                <TimeUnit value={timeLeft.days} label="DAYS" />
+                <TimeUnit value={timeLeft.hours} label="HRS" />
+                <TimeUnit value={timeLeft.minutes} label="MIN" />
+                <TimeUnit value={timeLeft.seconds} label="SEC" />
+              </View>
+              <Text style={styles.timerTitle}>Countdown timer of 30 days for withdrawal</Text></>
+          )
+        }
 
 
 
@@ -419,6 +502,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 20
   },
+  timerTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginTop: 10,
+    textAlign: 'center'
+  },
   chart: {
     height: 120,
     borderRadius: 10,
@@ -444,6 +533,76 @@ const styles = StyleSheet.create({
     backgroundColor: '#cfe9fc',
     borderRadius: 10,
     marginTop: 10,
+  },
+
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#333333',
+    marginBottom: 15,
+  },
+  countContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  number: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: '#2196F3',
+  },
+
+  wrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 12,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    marginTop: 10
+  },
+  timeBox: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  valueBox: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+    padding: 8,
+    minWidth: 45,
+    alignItems: 'center',
+  },
+  number: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
+  },
+  label: {
+    color: '#666',
+    fontSize: 10,
+    marginTop: 4,
+    fontWeight: '600',
   },
 });
 

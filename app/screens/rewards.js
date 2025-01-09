@@ -18,11 +18,12 @@ import Ripple from 'react-native-material-ripple';
 import HeaderBar from '../layout/header';
 import { GlobalStyleSheet } from '../constants/styleSheet';
 import LinearGradient from 'react-native-linear-gradient';
-import { useTheme } from '@react-navigation/native';
+import { useTheme, useNavigation } from '@react-navigation/native';
 import API from './Components/API';
 import Share from 'react-native-share';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Snackbar from 'react-native-snackbar';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 
 const socialLink = [
@@ -36,47 +37,47 @@ const socialLink = [
 
 const tableData = [
     {
-        num: '#1',
+        num: '1',
         split: '25%',
     },
     {
-        num: '#2',
+        num: '2',
         split: '20%',
     },
     {
-        num: '#3',
+        num: '3',
         split: '15%',
     },
     {
-        num: '#4',
+        num: '4',
         split: '10%',
     },
     {
-        num: '#5',
+        num: '5',
         split: '8%',
     },
     {
-        num: '#6',
+        num: '6',
         split: '7%',
     },
     {
-        num: '#7',
+        num: '7',
         split: '6%',
     },
     {
-        num: '#8',
+        num: '8',
         split: '5%',
     },
     {
-        num: '#9',
+        num: '9',
         split: '3%',
     },
     {
-        num: '#10',
+        num: '10',
         split: '1%',
     },
     {
-        num: '#11',
+        num: '11',
         split: '1%',
     }
 ]
@@ -90,6 +91,7 @@ const Rewards = () => {
     const [userDetails, setUserDetails] = useState([]);
     const [referralLink, setReferralLink] = useState('');
     const [refreshing, setRefreshing] = useState(false);
+    const navigation = useNavigation();
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -102,7 +104,6 @@ const Rewards = () => {
     useEffect(() => {
         const fetchUserDetails = async () => {
             const details = await API.getUserDetails();
-            console.log(details);
             if (details) {
                 // const referralLink = `https://highwealth.com/signup?invite_code=${details.user_id}`;
 
@@ -117,8 +118,9 @@ const Rewards = () => {
 
     const requiredReferrals = 3;
     const madeReferrals = userDetails?.totalReferrals || 0;
-    const remainingReferrals = requiredReferrals - madeReferrals;
-    const progress = (madeReferrals / requiredReferrals) * 100;
+    const remainingReferrals = Math.max(0, requiredReferrals - madeReferrals);
+    const progress = Math.min(100, (madeReferrals / requiredReferrals) * 100);
+
 
 
     const copyToClipboard = () => {
@@ -318,42 +320,55 @@ const Rewards = () => {
 
 
                         <View style={{ ...GlobalStyleSheet.row, paddingHorizontal: 15, marginBottom: 35 }}>
-                            <View style={{ ...GlobalStyleSheet.col50 }}>
-                                <View
-                                    style={{
-                                        borderRadius: SIZES.radius,
-                                        padding: 20,
-                                        backgroundColor: colors.card,
-                                        ...GlobalStyleSheet.shadow,
-                                    }}
-                                >
+                            <TouchableOpacity onPress={() => navigation.navigate('team')} activeOpacity={0.7} style={{ ...GlobalStyleSheet.col50 }} 
+                            >
+                                <View>
                                     <View
                                         style={{
-                                            height: 40,
-                                            width: 40,
                                             borderRadius: SIZES.radius,
-                                            backgroundColor: COLORS.primaryLight,
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            marginBottom: 10
+                                            padding: 20,
+                                            backgroundColor: colors.card,
+                                            ...GlobalStyleSheet.shadow,
                                         }}
                                     >
-                                        <Image
+                                        <View
                                             style={{
-                                                height: 20,
-                                                width: 20,
-                                                resizeMode: 'contain',
-                                                tintColor: COLORS.primary,
+                                                height: 40,
+                                                width: 40,
+                                                borderRadius: SIZES.radius,
+                                                backgroundColor: COLORS.primaryLight,
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                marginBottom: 10,
                                             }}
-                                            source={ICONS.customer}
+                                        >
+                                            <Image
+                                                style={{
+                                                    height: 20,
+                                                    width: 20,
+                                                    resizeMode: 'contain',
+                                                    tintColor: COLORS.primary,
+                                                }}
+                                                source={ICONS.customer}
+                                            />
+                                        </View>
+                                        <Text style={{ ...FONTS.font, color: colors.title }}>Your Team</Text>
+                                        <Text style={{ ...FONTS.h2, color: COLORS.primary, lineHeight: 37 }}>
+                                            {userDetails?.totalDownline || 0}
+                                        </Text>
+                                        <Icon
+                                            name="arrow-forward" // Ionicons name for right arrow
+                                            size={20}
+                                            color={COLORS.primary}
+                                            style={{
+                                                position: 'absolute',
+                                                bottom: 10,
+                                                right: 10,
+                                            }}
                                         />
                                     </View>
-                                    <Text style={{ ...FONTS.font, color: colors.title }}>Your Team</Text>
-                                    <Text style={{ ...FONTS.h2, color: COLORS.primary, lineHeight: 37 }}>
-                                        {userDetails?.totalDownline || 0}
-                                    </Text>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                             <View style={{ ...GlobalStyleSheet.col50 }}>
                                 <View
                                     style={{
@@ -393,7 +408,7 @@ const Rewards = () => {
                                             alignItems: 'center',
                                         }}
                                     >
-                                        <Text style={{ ...FONTS.h5, ...FONTS.fontMedium, lineHeight: 37, color: colors.title }}>
+                                        <Text style={{ ...FONTS.h2, color: COLORS.primary, lineHeight: 37 }}>
                                             {userDetails?.totalCredit || 0}
                                         </Text>
                                     </View>
@@ -401,40 +416,23 @@ const Rewards = () => {
                             </View>
                         </View>
 
+                        <View style={styles.container}>
+                            <View style={styles.headerContainer}>
+                                <Text style={styles.headerText}>Track your income with our unique ten-tier referral system</Text>
+                            </View>
 
-                        <View style={{ marginHorizontal: 15, marginBottom: 20 }}>
-                            <View style={{ alignItems: 'center', marginHorizontal: 6, marginBottom: 20 }}>
-                                <Text style={{ ...FONTS.h6, ...FONTS.fontMedium, color: colors.title, textAlign: 'center', marginBottom: 8 }}>Track your income with our unique eighth-tier referral system</Text>
-                                {/* <Text style={{ ...FONTS.fontXs, color: colors.text, textAlign: 'center' }}>We share 20% of its trading fee profits from your direct and indirect referrals.</Text> */}
+                            <View style={styles.tableHeader}>
+                                <Text style={styles.headerColumn}>Level</Text>
+                                <Text style={styles.headerColumn}>Reward</Text>
                             </View>
-                            <View
-                                style={[{
-                                    backgroundColor: colors.card,
-                                    borderRadius: SIZES.radius,
-                                    flexDirection: 'row',
-                                    paddingVertical: 10,
-                                    ...GlobalStyleSheet.shadow,
-                                }]}
-                            >
-                                <Text style={{ ...FONTS.font, color: colors.title, flexGrow: 150, paddingHorizontal: 10 }}>#</Text>
-                                <Text style={{ ...FONTS.font, color: colors.title, flexGrow: 220, paddingHorizontal: 10 }}>Reward</Text>
-                            </View>
-                            {tableData.map((data, index) => {
-                                return (
-                                    <View key={index}
-                                        style={{
-                                            flexDirection: 'row',
-                                            paddingVertical: 8,
-                                        }}
-                                    >
-                                        <Text style={{ ...FONTS.font, color: colors.text, flexGrow: 100, paddingHorizontal: 10 }}>{data.num}</Text>
-                                        <Text style={{ ...FONTS.font, color: colors.text, flexGrow: 150, paddingHorizontal: 10 }}>{data.split}</Text>
-                                    </View>
-                                )
-                            })}
+
+                            {tableData.map((data, index) => (
+                                <View key={index} style={styles.tableRow}>
+                                    <Text style={styles.rowColumn}>{data.num}</Text>
+                                    <Text style={styles.rowColumn}>{data.split}</Text>
+                                </View>
+                            ))}
                         </View>
-
-
                     </View>
                 </ScrollView>
             </View>
@@ -490,6 +488,53 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         marginTop: 5
+    },
+
+    headerContainer: {
+        alignItems: 'center',
+        marginBottom: 20,
+        padding: 10,
+        backgroundColor: '#f5f5f5',
+        borderRadius: 10,
+    },
+    headerText: {
+        fontSize: 18,
+        fontWeight: '600',
+        textAlign: 'center',
+        color: '#333',
+    },
+    tableHeader: {
+        flexDirection: 'row',
+        borderRadius: 8,
+        paddingVertical: 12,
+        backgroundColor: '#fff',
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+    },
+    headerColumn: {
+        fontSize: 16,
+        fontWeight: '600',
+        flex: 1,
+        textAlign: 'center',
+        color: '#000',
+    },
+    tableRow: {
+        flexDirection: 'row',
+        paddingVertical: 10,
+        backgroundColor: '#f9f9f9',
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+        borderRadius: 5,
+        backgroundColor: '#e0f7fa'
+    },
+    rowColumn: {
+        fontSize: 14,
+        textAlign: 'center',
+        flex: 1,
+        color: '#555',
     },
 })
 

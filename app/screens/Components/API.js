@@ -1,9 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default class API {
-    // static baseUrl = "http://192.168.1.4:6000/api/";
     static baseUrl = "https://api.thecodecutter.com/api/";
-    
     
     auth_token = "";
 
@@ -30,7 +28,6 @@ export default class API {
                 resolve(resp.json())
             })
             .catch(err => {
-                console.log(err);
                 reject(err)
             });
     }
@@ -92,7 +89,6 @@ export default class API {
     //     return new Promise((resolve, reject) => {
     //         AsyncStorage.getItem("token").then(token => {
     //             if (token) {
-    //                 console.log(token)
     //                 auth_token = token;
     //                 this.post(
     //                     "auth/driver-upload",
@@ -106,7 +102,6 @@ export default class API {
     //                     reject
     //                 );
     //             } else {
-    //                 console.log("No token");
     //             }
     //         });
     //     }
@@ -140,15 +135,13 @@ export default class API {
         return this.makeAPICall('subscription/subscribe', data, 'POST', true)
     }
 
-
-    static transferAmount(data) {
-        return this.makeAPICall('auth/transfer', data, 'POST', true)
-    }
-
     static claim(data) {
         return this.makeAPICall('auth/claim-credit', data, 'POST', true)
     }
 
+    static withdraw(data) {
+        return this.makeAPICall('auth/withdraw', data, 'POST', true)
+    }
 
     // static sendOtp(data) {
     //     return this.makeAPICall("auth/sendOtp", data, 'POST', false);
@@ -166,6 +159,18 @@ export default class API {
         return this.makeAPICall("auth/me", null, 'GET', true);
     }
 
+    static getTeamDetails() {
+        return this.makeAPICall("auth/get-team", null, 'GET', true);
+    }
+
+    static getNotifications() {
+        return this.makeAPICall("auth/notifications", null, 'GET', true);
+    }
+
+    static getNews() {
+        return this.makeAPICall("auth/news", null, 'GET', true);
+    }
+
     static getFundHistory() {
         return this.makeAPICall("orders/order-history", null, 'GET', true);
     }
@@ -173,11 +178,6 @@ export default class API {
     static getBonusHistory() {
         return this.makeAPICall("auth/bonus-history", null, 'GET', true);
     }
-
-    
-
-    
-
     // static getUserDetails() {
     //     return new Promise((resolve, reject) => {
     //         AsyncStorage.getItem("token").then(token => {
@@ -194,7 +194,6 @@ export default class API {
     //                     reject
     //                 );
     //             } else {
-    //                 console.log("No token");
     //             }
     //         });
     //     });
@@ -202,6 +201,9 @@ export default class API {
 
     static addBank(data) {
         return this.makeAPICall("auth/add-bank", data, 'PUT', true);
+    }
+    static markAllNotificationsAsRead(data) {
+        return this.makeAPICall("auth/notifications/markAllAsRead", data, 'PUT', true);
     }
 
     static fetchBankDetails(data) {

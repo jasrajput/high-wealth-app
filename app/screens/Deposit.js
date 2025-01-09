@@ -38,17 +38,17 @@ const Deposit = ({ route }) => {
   const rpcUrls = [
   {
     name: 'binancecoin',
-    rpcUrl: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+    rpcUrl: 'https://bsc-dataseed.binance.org/',
     decimals: 18, // Native token (BNB) uses 18 decimals
   },
   {
     name: 'tether',
-    rpcUrl: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+    rpcUrl: 'https://bsc-dataseed.binance.org/',
     decimals: 18, // Native token (USDT) uses 18 decimals
   },
   {
     name: 'ethereum',
-    rpcUrl: 'https://eth.drpc.org',
+    rpcUrl: 'https://eth.llamarpc.com',
     decimals: 18, // Native token (ETH) uses 18 decimals
   },
   {
@@ -189,34 +189,33 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
 
   const fetchTransactions = async (address, chain) => {
     try {
+      const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
+      const apiPolygon = 'RG7X63WC3BC75C3GTPUJFHI89QJCT38AR7';
+
       switch (chain) {
         case 'binancecoin': {
-          const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
-          const url = `https://api-testnet.bscscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
+          const url = `https://api.bscscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
           const response = await fetch(url);
           const data = await response.json();
           return data.result || [];
         }
 
         case 'tether': {
-          const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
-          const url = `https://api-testnet.bscscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
+          const url = `https://api.bscscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
           const response = await fetch(url);
           const data = await response.json();
           return data.result || [];
         }
   
         case 'ethereum': {
-          const apiKey = 'VJACNZIGAXCD6PGTI6CHRIS6DRHTBNRNXP';
-          const url = `https://api-testnet.etherscan.io/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
+          const url = `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
           const response = await fetch(url);
           const data = await response.json();
           return data.result || [];
         }
 
         case 'matic-network': {
-          const apiKey = 'RG7X63WC3BC75C3GTPUJFHI89QJCT38AR7';
-          const url = `https://amoy.polygonscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiKey}`;
+          const url = `https://api.polygonscan.com/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${apiPolygon}`;
           const response = await fetch(url);
           const data = await response.json();
           return data.result || [];
@@ -225,7 +224,7 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
         case 'tron': {
           const fetchTransactionsTron = async (address) => {
             try {
-              const url = `https://api.shasta.trongrid.io/v1/accounts/${address}/transactions`;
+              const url = `https://api.trongrid.io/v1/accounts/${address}/transactions`;
               
               const response = await fetch(url);
               const data = await response.json();
@@ -247,7 +246,7 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
         }
   
         case 'bitcoin': {
-          const url = `https://api.blockcypher.com/v1/btc/test3/addrs/${address}/full`; // BlockCypher Testnet API
+          const url = `https://api.blockcypher.com/v1/btc/test3/addrs/${address}/full`; // BlockCypher API
           const response = await fetch(url);
           const data = await response.json();
           return data.txs || [];
@@ -315,7 +314,6 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
   
       const data = await response.json();
       const balance = data.result;
-      console.log("balance: ", balance)
 
       return balance ? parseInt(balance, 16) / Math.pow(10, decimals) : 0;
 
@@ -362,7 +360,7 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
   const fetchBalanceTron = async (walletAddress) => {
     try {
       const tronInstance = new tronWeb({
-        fullHost: 'https://api.shasta.trongrid.io',
+        fullHost: 'https://api.trongrid.io',
       });
       const balance = await tronInstance.trx.getBalance(walletAddress);
       return balance / 1e6;
@@ -424,8 +422,9 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
 
         setBalance(bal);
         setCategories(response.data.categories);
-        setBalanceUsdValue(bal * response.data.market_data.current_price.usd);
+        setBalanceUsdValue(bal * response?.data.market_data?.current_price?.usd);
         setPriceChange(priceChange);
+        console.log(response.decimal_place);
         setTokenData(response.data);
 
       } catch (ex) {
@@ -449,7 +448,8 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
         if (address) {
           try {
             const txs = await fetchTransactions(address, tokenId);
-            // console.log(txs);
+            console.log(txs);
+            console.log(typeof txs);
             setTransactions(txs);
             setLoading(false);
           } catch (err) {
@@ -493,7 +493,6 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
           const transactionType = categorizeTransaction(tx, walletAddress, tokenId);
           const formattedDate = formatDate(tx.timeStamp);
           const valueInBNB = parseInt(tx.value) / Math.pow(10, 18);
-
 
           return (
             <View key={index} style={styles.txItem}>
@@ -548,12 +547,12 @@ const categorizeTransaction = (tx, walletAddress, tokenName) => {
       <ScanSheet ref={scanSheetRef} onScanSuccess={handleScannedData} />
 
       {/* Transfer */}
-      <TransferSheet fromAddress={walletAddress} toAddress={address} amount={amount} refTransfer={transferSheetRef} currency={String(tokenData.symbol).toUpperCase()} />
+      <TransferSheet decimal={walletAddress} fromAddress={walletAddress} toAddress={address} amount={amount} refTransfer={transferSheetRef} currency={String(tokenData.symbol).toUpperCase()} />
 
       <View style={styles.footer}>
         <Text style={styles.tokenName}>Current {String(tokenData.symbol).toUpperCase()} Price</Text>
         <View style={{ flexDirection: 'row' }}>
-          <Text style={styles.tokenPrice}>${tokenData.market_data.current_price.usd}</Text>
+          <Text style={styles.tokenPrice}>${tokenData?.market_data?.current_price?.usd}</Text>
           <Text style={[styles.priceChange, { color: priceChange > 0.0000 ? 'green' : 'red' }]}>
             {priceChange > 0.0000 ? `+${priceChange.toFixed(2)}%` : `${priceChange.toFixed(2)}%`}
           </Text>

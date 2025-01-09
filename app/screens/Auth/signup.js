@@ -46,13 +46,11 @@ const SignIn = ({ navigation }) => {
     const handleAccept = () => {
         setModalVisible(false);
         setAccepted(true);
-        console.log('User accepted the terms');
     };
     
 
     const handleCancel = () => {
         setModalVisible(false);
-        console.log('User canceled');
     };
 
     const handleInputChange = (name, value) => {

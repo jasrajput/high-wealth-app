@@ -10,12 +10,15 @@ import DrawerNavigation from "./DrawerNavigation";
 import Verification from '../screens/verification';
 import KnowYourCrypto from '../screens/knowYourCrypto';
 import Settings from '../screens/settings';
+import Team from '../screens/team';
 import History from '../screens/history';
 import HelpDesk from '../screens/helpdesk';
 import Messages from '../screens/messages';
 import PaymentMethod from '../screens/paymentMethod';
 import Rewards from '../screens/rewards';
 import Notifications from '../screens/notifications';
+import News from '../screens/news';
+
 import ProfitLoss from '../screens/profitloss';
 import Search from '../screens/search';
 import Components from "../screens/Components/Components";
@@ -110,6 +113,9 @@ const StackNavigator = () => {
           <Stack.Screen name="paymentMethod" component={PaymentMethod} />
           <Stack.Screen name="rewards" component={Rewards} />
           <Stack.Screen name="notifications" component={Notifications} />
+          <Stack.Screen name="team" component={Team} />
+          
+          <Stack.Screen name="news" component={News} />
           <Stack.Screen name="profitloss" component={ProfitLoss} />
           <Stack.Screen name="search" component={Search} />
           <Stack.Screen name="Components" component={Components} />

@@ -75,23 +75,6 @@ function Sidebar() {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.navItem}
-                    onPress={() => navigation.navigate('Components')}
-                >
-                    <Image
-                        source={ICONS.grid}
-                        style={{
-                            height:20,
-                            width:20,
-                            tintColor:colors.text,
-                            left:-1,
-                            marginRight:10,
-                        }}
-                    />
-                    <Text style={{...FONTS.font,...FONTS.fontMedium,color:colors.title,flex:1}}>Components</Text>
-                    <FeatherIcon size={16} color={colors.text} name={'chevron-right'}/>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.navItem}
                     onPress={() => navigation.navigate('settings')}
                 >
                     <Image
@@ -130,7 +113,7 @@ function Sidebar() {
                 }}
             >
                 <Text style={{...FONTS.h6,color:colors.title,marginBottom:5}}>High Wealth</Text>
-                <Text style={{...FONTS.font,color:colors.text}}>App Version 1.0</Text>
+                <Text style={{...FONTS.font,color:colors.text}}>App Version 3</Text>
             </View>
         </View>
     );

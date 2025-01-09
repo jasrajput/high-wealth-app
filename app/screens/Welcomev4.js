@@ -37,7 +37,6 @@ const WelcomeV4 = ({route}) => {
           }
 
             // const wal = wallet.encrypt(password);
-            // console.log(wal);
             await Keychain.setGenericPassword("userPassword", password, { service: "userPassword" });
             AsyncStorage.setItem('thirdPhase', 'done').then(() => {
               navigation.replace("signup");

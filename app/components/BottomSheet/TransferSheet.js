@@ -24,7 +24,7 @@ const TransferSheet = ({ currency, amount, fromAddress, toAddress, refTransfer }
 
 
     const getGasPrice = async () => {
-        const url = 'https://api-testnet.bscscan.com/api?module=proxy&action=eth_gasPrice';
+        const url = 'https://api.bscscan.com/api?module=proxy&action=eth_gasPrice';
         try {
             const response = await fetch(url, {
                 method: 'GET',
@@ -39,7 +39,7 @@ const TransferSheet = ({ currency, amount, fromAddress, toAddress, refTransfer }
     };
 
     const estimateGasLimit = async (toAddress, amount) => {
-        const url = `https://api-testnet.bscscan.com/api?module=proxy&action=eth_estimateGas&to=${toAddress}&value=${amount}`;
+        const url = `https://api.bscscan.com/api?module=proxy&action=eth_estimateGas&to=${toAddress}&value=${amount}`;
         try {
             const response = await fetch(url, {
                 method: 'GET',
@@ -97,6 +97,7 @@ const TransferSheet = ({ currency, amount, fromAddress, toAddress, refTransfer }
     }, [amount, toAddress]); // Dependencies to trigger this effect
 
     const onConfirmTransfer = async () => {
+        const amountInWei = amount * 1e18;
         // Prepare transaction data
         try {
             const transactionData = {

@@ -53,7 +53,6 @@ const SwapeButton = ({scroll,onToggle,...props}) => {
   const animatedGestureHandler = useAnimatedGestureHandler({
     onStart: (_, ctx) => {
       ctx.completed = toggled;
-      //console.log('start');
       runOnJS(handleScrollDisabled)(false);
     },
     onActive: (e, ctx) => {
@@ -76,7 +75,6 @@ const SwapeButton = ({scroll,onToggle,...props}) => {
         X.value = withSpring(H_SWIPE_RANGE);
         runOnJS(handleComplete)(true);
       }
-      //console.log('end');
       runOnJS(handleScrollEnabled)(true);
     },
   });

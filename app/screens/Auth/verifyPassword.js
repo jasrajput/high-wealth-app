@@ -5,12 +5,14 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   SafeAreaView,
   Image,
   StatusBar,
-  BackHandler
+  BackHandler,
+  Modal,
+  Linking,
+  Button,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import * as Keychain from 'react-native-keychain';
@@ -18,13 +20,46 @@ import Snackbar from 'react-native-snackbar';
 import ReactNativeBiometrics, { BiometryTypes } from 'react-native-biometrics'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../../constants/theme';
-
+import DeviceInfo from 'react-native-device-info';
+import API from '../Components/API';
 
 const PasswordScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(true);
+  const [isUpdateRequired, setIsUpdateRequired] = useState(false);
+  const [updateUrl, setUpdateUrl] = useState('');
+  const [currentVersion, setCurrentVersion] = useState('');
+  const [latestVersion, setLatestVersion] = useState('');
+
+
+  useEffect(() => {
+    const checkVersion = async () => {
+      try {
+        const details = await API.getUserDetails();
+        if (details.isBlocked) {
+          BackHandler.exitApp();
+          return;
+        }
+
+        const { latestVersion, updateRequired, updateUrl } = details.version;
+        const currentVersion = DeviceInfo.getVersion();
+
+        setCurrentVersion(currentVersion);
+        setLatestVersion(latestVersion);
+
+        if (updateRequired && currentVersion < latestVersion) {
+          setIsUpdateRequired(true);
+          setUpdateUrl(updateUrl);
+        }
+      } catch (error) {
+        console.error('Failed to check app version:', error);
+      }
+    }
+
+    checkVersion();
+  }, []);
 
   const checkBiometricStatus = async () => {
     const credentials = await Keychain.getGenericPassword({ service: "userPassword" });
@@ -43,14 +78,10 @@ const PasswordScreen = ({ navigation }) => {
         });
 
         setIsLoading(false);
-
-        // setTimeout(() => {
-        //   BackHandler.exitApp();
-        // }, 500);
       }
     } else if (credentials) {
       setIsLoading(false);
-      
+
     } else {
       setIsLoading(false);
       navigation.navigate('intro');
@@ -99,7 +130,6 @@ const PasswordScreen = ({ navigation }) => {
       const credentials = await Keychain.getGenericPassword({ service: "userPassword" });
       if (credentials) {
         const storedPassword = credentials.password;
-        console.log(storedPassword);
         if (password === storedPassword) {
           navigation.navigate('drawernavigation');
         } else {
@@ -128,9 +158,46 @@ const PasswordScreen = ({ navigation }) => {
     }
   };
 
-
   if (isLoading) {
     return <ActivityIndicator size="large" style={{ flex: 1 }} />;
+  }
+
+  if (isUpdateRequired) {
+    return (
+      <Modal visible={true} transparent={true} animationType="slide">
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      {/* App Logo */}
+      <Image
+        source={require('../../assets/images/logo.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
+
+      {/* Modal Text */}
+      <Text style={styles.modalText}>
+        A new version of the app is available. Please update to continue.
+      </Text>
+
+      {/* Display Current and Latest Version */}
+      <Text style={styles.versionText}>
+        Your version: {currentVersion}
+      </Text>
+      <Text style={styles.versionText}>
+        Latest version: {latestVersion}
+      </Text>
+
+      {/* Update Button */}
+      <Button
+        title="Update Now"
+        onPress={() => Linking.openURL(updateUrl)}
+        color="#007BFF"
+      />
+    </View>
+  </View>
+</Modal>
+
+    );
   }
 
   return (
@@ -140,7 +207,7 @@ const PasswordScreen = ({ navigation }) => {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <Image
-            source={require('../../assets/images/logo-full-white.png')}
+            source={require('../../assets/images/logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -194,12 +261,12 @@ const PasswordScreen = ({ navigation }) => {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          {/* <TouchableOpacity 
           style={styles.forgotPasswordContainer}
           onPress={() => navigation.navigate('drawernavigation')}
         >
           <Text style={styles.forgotPasswordText}>SKIP</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         </View>
       </SafeAreaView>
     </>
@@ -298,6 +365,69 @@ const styles = StyleSheet.create({
     color: '#3498DB',
     fontSize: 19,
     fontWeight: '500',
+  },
+
+
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 30,
+    borderRadius: 25,
+    width: '90%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.44,
+    shadowRadius: 10.32,
+    elevation: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 25,
+    textAlign: 'center',
+    color: '#2D3748',
+    lineHeight: 24,
+    fontWeight: '500',
+  },
+  updateButton: {
+    backgroundColor: '#0066FF',
+    paddingVertical: 15,
+    paddingHorizontal: 35,
+    borderRadius: 12,
+    width: '100%',
+    shadowColor: '#0066FF',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+
+  versionText: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 10,
+    color: '#555',
   },
 });
 

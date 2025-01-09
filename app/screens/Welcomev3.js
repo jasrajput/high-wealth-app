@@ -34,9 +34,7 @@ const WelcomeV3 = () => {
                 setPhraseWords(mnemonic.split(' '));
                 setLoading(false);
 
-                // const wallet = ethers.Wallet.fromPhrase(mnemonic);
                 const wallet = ethers.HDNodeWallet.fromPhrase(mnemonic)
-                console.log(wallet)
                 setWallet(wallet);
 
             } catch (error) {
@@ -53,7 +51,6 @@ const WelcomeV3 = () => {
     const savePhrase = async () => {
         if(showPhrase) {
             await Keychain.setGenericPassword("recoveryPhrase", recoveryPhrase, { service: "recoveryData" });
-            console.log('Recovery phrase saved securely');
             navigation.navigate('welcomeImport', {
                 phrases: phraseWords
             });
@@ -65,18 +62,6 @@ const WelcomeV3 = () => {
             });
         }
     }
-
-
-    // const copyToClipboard = () => {
-    //     console.log('clicked');
-    //     Clipboard.setString(recoveryPhrase);
-    //     Snackbar.show({
-    //         text: 'Copied',
-    //         backgroundColor: COLORS.success,
-    //         duration: Snackbar.LENGTH_SHORT,
-    //     });
-    // };
-
 
     if (loading) {
         return <ActivityIndicator size="large" style={{ flex: 1 }} />;

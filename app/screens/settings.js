@@ -155,7 +155,6 @@ const Settings = () => {
 
         const fetchUserDetails = async () => {
             const details = await API.getUserDetails();
-            console.log(details);
             if (details) {
                 setUserDetails(details);
             }
