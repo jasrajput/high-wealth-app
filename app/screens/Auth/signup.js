@@ -32,6 +32,7 @@ const SignIn = ({ navigation }) => {
     const [walletAddresss, setWalletAddress] = useState('');
     const [isFocused2, setisFocused2] = useState(false);
     const [isFocused3, setisFocused3] = useState(false);
+    const [isFocused4, setisFocused4] = useState(false);
     const [isLoading, setLoading] = useState(true);
     const [isModalVisible, setModalVisible] = useState(false);
     const [isAccepted, setAccepted] = useState(false);
@@ -39,6 +40,7 @@ const SignIn = ({ navigation }) => {
     const [form, setForm] = useState({
         fullName: '',
         email: '',
+        phone: '',
         ref_code: '',
     });
 
@@ -64,8 +66,13 @@ const SignIn = ({ navigation }) => {
     const onRegister = async () => {
         if(!isAccepted) return ToastAndroid.show('Please accept the terms & conditions before continuing', ToastAndroid.SHORT);
 
-        if (!form.fullName || !form.email) {
-            ToastAndroid.show('Please fill out full name and email.', ToastAndroid.SHORT);
+        if (!form.fullName || !form.email || !form.phone) {
+            ToastAndroid.show('Please fill out full name, email and phone number.', ToastAndroid.SHORT);
+            return;
+        }
+
+        if(form.phone.length !== 10) {
+            ToastAndroid.show('Phone no. should be 10 digit long', ToastAndroid.SHORT);
             return;
         }
 
@@ -75,6 +82,7 @@ const SignIn = ({ navigation }) => {
             const response = await API.userRegister({
                 name: form.fullName,
                 email: form.email,
+                phone: form.phone,
                 ref_code: form.ref_code || undefined,
                 walletAddress: walletAddresss
             });
@@ -271,6 +279,42 @@ const SignIn = ({ navigation }) => {
                                         />
                                     </View>
                                 </Animatable.View>
+
+                                <Animatable.View
+                                    animation="fadeInUp"
+                                    duration={1000}
+                                    delay={1000}
+                                    style={[styles.inputGroup]}>
+                                    <Text style={{ ...FONTS.fontSm, color: colors.title, marginBottom: 6 }}>Phone no.</Text>
+                                    <View
+                                        style={{
+                                            ...GlobalStyleSheet.shadow,
+                                            backgroundColor: colors.card,
+                                            borderRadius: SIZES.radius,
+                                        }}
+                                    >
+                                        <View style={styles.inputIco}>
+                                            <FeatherIcon name='phone' color={COLORS.primary} size={18} />
+                                        </View>
+                                        <TextInput
+                                            onFocus={() => setisFocused4(true)}
+                                            onBlur={() => setisFocused4(false)}
+                                            style={[
+                                                styles.input,
+                                                {
+                                                    color: colors.title,
+                                                    backgroundColor: colors.card
+                                                },
+                                                isFocused4 ? styles.inputActive : ""
+                                            ]}
+                                            placeholderTextColor={colors.text}
+                                            placeholder='Enter your phone number'
+                                            value={form.phone}
+                                            onChangeText={(text) => handleInputChange('phone', text)}
+                                        />
+                                    </View>
+                                </Animatable.View>
+
 
                                 <Animatable.View
                                     animation="fadeInUp"

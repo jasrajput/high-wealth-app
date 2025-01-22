@@ -81,6 +81,7 @@ export const INTRO = {
 
 export const IMAGES = {
 	pic1 : require('../assets/images/pic1.png'),
+	pic2 : require('../assets/images/pic2.png'),
 	bg1 : require('../assets/images/background/bg1.png'),
 	logoFullWhite : require('../assets/images/logo-full-white.png'),
 	bitcoin : require('../assets/images/coins/bitcoin.png'),

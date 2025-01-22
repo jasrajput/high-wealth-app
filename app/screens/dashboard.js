@@ -5,9 +5,10 @@ import { SIZES, IMAGES, COLORS, FONTS } from '../constants/theme';
 import { useTheme, useNavigation } from '@react-navigation/native';
 import { GlobalStyleSheet } from '../constants/styleSheet';
 import API from './Components/API';
-import { LineChart } from 'react-native-chart-kit';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import HistoryReferralIncome from '../components/history/historyReferralIncome';
+import UserTargetProgress from '../screens/Components/Progress';
+
 import CustomButton from '../components/customButton';
 import Snackbar from 'react-native-snackbar';
 
@@ -42,27 +43,28 @@ const Dashboard = () => {
 
   const onRefresh = () => {
     setRefreshing(true);
+    fetchUserDetails();
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);
   };
 
 
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      const details = await API.getUserDetails();
-      if (details.isBlocked) {
-        BackHandler.exitApp();
-        return;
-      }
-
-      setLevels(details?.transactions);
-      if (details) {
-        setUserDetails(details);
-        setJoinDate(details.joinedOn)
-      }
+  const fetchUserDetails = async () => {
+    const details = await API.getUserDetails();
+    if (details.isBlocked) {
+      BackHandler.exitApp();
+      return;
     }
 
+    setLevels(details?.transactions);
+    if (details) {
+      setUserDetails(details);
+      setJoinDate(details.joinedOn)
+    }
+  }
+
+  useEffect(() => {
     fetchUserDetails();
   }, []);
 
@@ -315,13 +317,19 @@ const Dashboard = () => {
           </View>
         </View>
 
+        {/* Coundown */}
+        
+        <Text style={styles.sectionTitle}>Target to achieve</Text>
+        <UserTargetProgress currentUsers={userDetails?.totalClaimedUsers} />
+        <Text></Text><Text></Text><Text></Text>
+
 
 
         {/* Arbitrage Analytics */}
-        <Text style={styles.sectionTitle}>Arbitrage Analytics</Text>
+        {/* <Text style={styles.sectionTitle}>Arbitrage Analytics</Text> */}
 
 
-        <View
+        {/* <View
           style={{
             borderRadius: SIZES.radius,
             paddingHorizontal: 20,
@@ -369,7 +377,7 @@ const Dashboard = () => {
 
 
           </View>
-        </View>
+        </View> */}
 
 
         <View style={{ flex: 1, marginTop: 20 }}>

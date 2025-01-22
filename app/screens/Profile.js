@@ -64,11 +64,11 @@ const Profile = ({ navigation }) => {
         //     title: "Helpdesk",
         //     navigate: "helpdesk",
         // },
-        {
-            icon: ICONS.logout,
-            title: "Logout",
-            navigate: "welcome",
-        },
+        // {
+        //     icon: ICONS.logout,
+        //     title: "Logout",
+        //     navigate: "welcome",
+        // },
     ]
 
     const handleBtn = async (page) => {

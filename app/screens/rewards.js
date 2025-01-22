@@ -76,10 +76,6 @@ const tableData = [
         num: '10',
         split: '1%',
     },
-    {
-        num: '11',
-        split: '1%',
-    }
 ]
 
 
@@ -433,6 +429,8 @@ const Rewards = () => {
                                 </View>
                             ))}
                         </View>
+
+                        <Text></Text><Text></Text><Text></Text><Text></Text>
                     </View>
                 </ScrollView>
             </View>

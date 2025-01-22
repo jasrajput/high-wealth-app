@@ -127,8 +127,8 @@ export default class API {
         return this.makeAPICall('orders/create', data, 'POST', true)
     }
 
-    static subscribe(data) {
-        return this.makeAPICall('subscription/subscribe', data, 'POST', true)
+    static trade(data) {
+        return this.makeAPICall('auth/trade', data, 'POST', true)
     }
 
     static subscribe(data) {

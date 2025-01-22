@@ -151,7 +151,6 @@ export const getAddressFromSeed = (tokenName) => {
           // tronInstance.setPrivateKey(privateKey);
           // Get the tron address
           // const address = tronWeb.address.fromHex(wallet.address);
-          console.log("address: ", address)
           resolve(address);
           // resolve(address);
         } catch (error) {

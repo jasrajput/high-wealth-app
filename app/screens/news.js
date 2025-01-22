@@ -108,7 +108,7 @@ const News = () => {
                     }
 
                     {
-                        notifications.length === 0 && <Text style={{textAlign: 'center', marginTop: 15}}>No notification yet</Text>
+                        notifications.length === 0 && <Text style={{textAlign: 'center', marginTop: 15}}>No news yet</Text>
                     }
                 </View>
             </View>

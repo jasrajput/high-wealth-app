@@ -39,13 +39,13 @@ const DATA = [
                 mode: 'show',
                 RBSheet: 'account',
             },
-            {
-                icon: ICONS.email,
-                title: 'Change Email ID',
-                desc: 'Change email ID.',
-                mode: 'edit',
-                RBSheet: 'new email',
-            },
+            // {
+            //     icon: ICONS.email,
+            //     title: 'Change Email ID',
+            //     desc: 'Change email ID.',
+            //     mode: 'edit',
+            //     RBSheet: 'new email',
+            // },
             // {
             //     icon : ICONS.lock,
             //     title:'Change Password',
@@ -77,7 +77,7 @@ const DATA = [
         ]
     },
     {
-        title: "Security Setting",
+        title: "Security Settings",
         data: [
             // {
             //     icon : ICONS.document,

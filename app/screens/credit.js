@@ -330,7 +330,7 @@ const Credit = () => {
                                             Total Credits: ${dailyLoanAmount}
                                         </Text>
                                         <Text style={{ fontSize: 15, color: '#000', marginTop: 25 }}>
-                                            Potential earmings: 0.3% to 0.5%
+                                            Potential earnings: 0.3% to 0.5%
                                         </Text>
                                     </View>
 

@@ -17,8 +17,8 @@ import SearchCoin from '../components/searchCoin';
 import RBSheet from "react-native-raw-bottom-sheet";
 import useFetchCoinData from '../hooks/useFetchCoinData';
 import { getAddressFromSeed } from '../helpers/wallet';
+import { fetchBalance } from '../helpers/balance';
 import API from './Components/API';
-
 
 const Home = () => {
 
@@ -62,39 +62,41 @@ const Home = () => {
     }, []);
 
 
-    const getBalance = async () => {
-        const walletAddress = await getAddressFromSeed("binancecoin");
-        const url = 'https://bsc-dataseed.binance.org/';
-        const body = JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'eth_getBalance',
-            params: [walletAddress, 'latest'],
-        });
+    // const getBalance = async () => {
+    //     const walletAddress = await getAddressFromSeed("binancecoin");
+    //     const url = 'https://bsc-dataseed.binance.org/';
+    //     const body = JSON.stringify({
+    //         jsonrpc: '2.0',
+    //         id: 1,
+    //         method: 'eth_getBalance',
+    //         params: [walletAddress, 'latest'],
+    //     });
 
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body,
-            });
+    //     try {
+    //         const response = await fetch(url, {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body,
+    //         });
 
-            const data = await response.json();
-            const balance = data.result;
-            return parseInt(balance, 16) / Math.pow(10, 18);
-        } catch (error) {
-            return 0;
-        }
-    };
+    //         const data = await response.json();
+    //         const balance = data.result;
+    //         return parseInt(balance, 16) / Math.pow(10, 18);
+    //     } catch (error) {
+    //         return 0;
+    //     }
+    // };
 
     const getWalletBalances = async () => {
         const walletBalances = {};
         for (const id of coinIds) {
-            if (id === 'binancecoin') {
-                walletBalances[id] = await getBalance();
-            } else {
-                walletBalances[id] = 0;
-            }
+            const address = await getAddressFromSeed(id);
+            walletBalances[id] = await fetchBalance(id, address);
+            // if (id === 'binancecoin') {
+            //     walletBalances[id] = await getBalance();
+            // } else {
+            //     walletBalances[id] = 0;
+            // }
         }
         return walletBalances;
     };
@@ -147,7 +149,6 @@ const Home = () => {
 
 
                 <View
-
                 >
                     {
                         coinData
@@ -227,6 +228,13 @@ const Home = () => {
                                 </View>
                             ))
                     }
+
+                    <Text></Text>
+                    <Text></Text>
+                    <Text></Text>
+                    <Text></Text>
+                    <Text></Text>
+
                 </View>
             </ScrollView>
         )
